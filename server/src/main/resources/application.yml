@@ -1,0 +1,5 @@
+custom:
+  server:
+    port: 8081
+    so_timeout: 15
+    id: server

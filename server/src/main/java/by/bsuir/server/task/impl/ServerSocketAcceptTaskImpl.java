@@ -1,8 +1,9 @@
 package by.bsuir.server.task.impl;
 
-import by.bsuir.server.Pool;
-import by.bsuir.server.socket.SocketIOWrapper;
-import by.bsuir.server.task.Task;
+import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.node.SocketIOWrapper;
+import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -17,7 +18,7 @@ import java.net.SocketTimeoutException;
 @RequiredArgsConstructor
 public class ServerSocketAcceptTaskImpl implements Task {
     private final ServerSocket serverSocket;
-    private final Pool<SocketIOWrapper> socketIOWrapperPool;
+    private final Pool<AbstractNodeIOWrapper> socketIOWrapperPool;
     @Setter
     @Getter
     private long timeToListen;

@@ -1,4 +1,4 @@
-package by.bsuir.server;
+package by.bsuir.client;
 
 import by.bsuir.instrumental.task.AsyncTaskRunner;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 
 @SpringBootApplication
 @RequiredArgsConstructor
-public class Server implements CommandLineRunner {
+public class Client implements CommandLineRunner {
+
     private final AsyncTaskRunner runner;
 
     public static void main(String[] args) {

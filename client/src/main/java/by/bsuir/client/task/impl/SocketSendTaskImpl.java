@@ -1,26 +1,30 @@
-package by.bsuir.server.task.impl;
+package by.bsuir.client.task.impl;
 
+import by.bsuir.client.socket.impl.ClientIOWrapper;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
+import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.SearchableSocketIOWrapperPool;
 import by.bsuir.instrumental.task.Task;
-import by.bsuir.instrumental.packet.PacketFlags;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class SocketSendTaskImpl implements Task {
-    private static final byte[] SERVER_ID = "0.0.0.0:0::0.0.0.0:0".getBytes();  //todo remove this by any means
+    @Setter
+    private byte[] CLIENT_ID;
+    private final ClientIOWrapper clientIOWrapper;
+    private final SocketIOWrapper socketIOWrapper;
     private final Pool<Packet> packetPool;
-    private final SearchableSocketIOWrapperPool searchableSocketIOWrapperPool;
     @Setter
     @Getter
     private int requestsPerCall;
@@ -30,24 +34,25 @@ public class SocketSendTaskImpl implements Task {
         for (int counter = 0; counter < requestsPerCall && !packetPool.isEmpty(); counter++) {
             Optional<Packet> optional = packetPool.poll();
             optional.ifPresent(packet -> {
-                String id = new String(packet.getTargetId());
-                searchableSocketIOWrapperPool.find(id).ifPresent(
-                        socketIOWrapper -> performSendingPackage(packet, socketIOWrapper)
-                );
+                if(Arrays.equals(this.CLIENT_ID, packet.getTargetId())){
+                    clientIOWrapper.send(packet);
+                }else {
+                    performSendingPackage(packet);
+                }
             });
         }
     }
 
-    private void performSendingPackage(Packet packet, AbstractNodeIOWrapper abstractNodeIOWrapper) {
+    private void performSendingPackage(Packet packet) {
         try {
-            abstractNodeIOWrapper.send(packet);
+            socketIOWrapper.send(packet);
         } catch (IOException e) {
             handleSendingFault(packet);
         }
     }
 
     void handleSendingFault(Packet packet) {
-        Packet responsePacket = new Packet(null, SERVER_ID, packet.getSourceId(), PacketType.INFORM_PACKAGE.type, PacketFlags.ABORT.getFlagValue());
+        Packet responsePacket = new Packet(null, CLIENT_ID, packet.getSourceId(), PacketType.INFORM_PACKAGE.type, PacketFlags.ABORT.getFlagValue());
         packetPool.offer(responsePacket);
     }
 }

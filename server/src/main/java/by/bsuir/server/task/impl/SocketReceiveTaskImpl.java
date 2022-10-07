@@ -1,9 +1,9 @@
 package by.bsuir.server.task.impl;
 
-import by.bsuir.server.Pool;
-import by.bsuir.server.packet.Packet;
-import by.bsuir.server.socket.SocketIOWrapper;
-import by.bsuir.server.task.Task;
+import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.packet.Packet;
+import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SocketReceiveTaskImpl implements Task {
     private final Pool<Packet> packetPool;
-    private final Pool<SocketIOWrapper> socketIOWrapperPool;
+    private final Pool<AbstractNodeIOWrapper> socketIOWrapperPool;
     @Setter
     @Getter
     private int requestsPerCall;
@@ -23,11 +23,11 @@ public class SocketReceiveTaskImpl implements Task {
     @Override
     public void run() {
         for (int counter = 0; counter < requestsPerCall; counter++) {
-            Optional<SocketIOWrapper> optional = socketIOWrapperPool.poll();
+            Optional<AbstractNodeIOWrapper> optional = socketIOWrapperPool.poll();
             if (optional.isPresent()) {
-                SocketIOWrapper socketIOWrapper = optional.get();
-                socketIOWrapper.receive().ifPresent(packetPool::offer);
-                socketIOWrapperPool.offer(socketIOWrapper);
+                AbstractNodeIOWrapper abstractNodeIOWrapper = optional.get();
+                abstractNodeIOWrapper.receive().ifPresent(packetPool::offer);
+                socketIOWrapperPool.offer(abstractNodeIOWrapper);
             } else {
                 break;
             }

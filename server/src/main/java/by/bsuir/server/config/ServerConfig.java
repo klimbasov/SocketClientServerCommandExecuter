@@ -1,8 +1,8 @@
 package by.bsuir.server.config;
 
-import by.bsuir.server.Pool;
-import by.bsuir.server.task.Task;
-import by.bsuir.server.task.TaskPoolImpl;
+import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.task.Task;
+import by.bsuir.instrumental.pool.impl.TaskPoolImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
