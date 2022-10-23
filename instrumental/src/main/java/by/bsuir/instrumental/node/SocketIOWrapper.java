@@ -2,6 +2,7 @@ package by.bsuir.instrumental.node;
 
 import by.bsuir.instrumental.packet.Packet;
 import lombok.Getter;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
 import java.net.Socket;
@@ -9,21 +10,17 @@ import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
-public class SocketIOWrapper extends AbstractNodeIOWrapper {
+public class SocketIOWrapper extends AbstractNodeIOWrapper implements DisposableBean {
     private static final int DEFAULT_SO_TIMEOUT = 50;
     private final Socket socket;
-    private final ObjectInputStream in;
-    private final ObjectOutputStream out;
     @Getter
     private boolean isClosed = false;
 
     public SocketIOWrapper(Socket socket) {
-        super(buildSocketId(socket));
+        super.setSocketId(buildSocketId(socket));
         try {
-            socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
             this.socket = socket;
-            in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-            out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -35,7 +32,7 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper {
 
     public Optional<Packet> receive() {
         Packet request;
-        try {
+        try (ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()))){
             request = (Packet) in.readObject();
             if (isNull(request)) {
                 isClosed = true;
@@ -46,14 +43,16 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper {
         return Optional.ofNullable(request);
     }
 
-    public void send(Packet response) throws IOException {
-        out.writeObject(response);
+    public void send(Packet response) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()))){
+            out.writeObject(response);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public void close() throws Exception {
-        in.close();
-        out.close();
+    public void destroy() throws Exception {
         socket.close();
     }
 }

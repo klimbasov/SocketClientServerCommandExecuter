@@ -1,9 +1,7 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.Pool;
 import by.bsuir.instrumental.pool.SearchablePool;
-import by.bsuir.instrumental.pool.SearchableSocketIOWrapperPool;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

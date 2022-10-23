@@ -1,4 +1,4 @@
-package by.bsuir.instrumental.command.service;
+package by.bsuir.instrumental.service;
 
 import lombok.Value;
 

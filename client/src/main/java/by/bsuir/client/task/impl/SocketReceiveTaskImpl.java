@@ -10,6 +10,7 @@ import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -17,10 +18,11 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class SocketReceiveTaskImpl implements Task {
-    private final AbstractNodeIOWrapperPool nodeIOWrapperPool;
+    private final Pool<AbstractNodeIOWrapper> nodeIOWrapperPool;
     private final Pool<Packet> packetPool;
     @Setter
     @Getter
+    @Value("${client.timing.receiveIterationsPerTaskExecution}")
     private int requestsPerCall;
 
     @Override

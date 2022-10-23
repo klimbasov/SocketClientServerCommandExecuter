@@ -9,16 +9,16 @@ import java.util.Map;
 public class EchoCommand extends AbstractCommand {
 
     public EchoCommand(Map<String, Class<?>> options, Map<String, Class<?>> shortenOptions, String name) {
-        super(new String[]{}, new String[]{}, new HashMap<>(), new HashMap<>(), "");
+        super(new String[]{}, new String[]{}, new HashMap<>(), new HashMap<>(), "echo", new Class<?>[]{});
     }
 
     @Override
     public String execute(StructuredCommand command) {
         StructuredCommand.CommandComponent defaultCommandComponent = new StructuredCommand.CommandComponent()
-                .setType(StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT)
+                .setType(StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT_OR_COMMAND)
                 .setValue("");
         return command.getComponents().stream()
-                .filter(commandComponent -> commandComponent.getType() == StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT)
+                .filter(commandComponent -> commandComponent.getType() == StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT_OR_COMMAND)
                 .findFirst().orElse(defaultCommandComponent)
                 .getValue();
     }

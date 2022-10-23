@@ -1,13 +1,14 @@
 package by.bsuir.client.command.ui;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 
 @Component
 @RequiredArgsConstructor
-public class SystemInputCommandProducer implements Runnable{
+public class SystemInputProducer implements Runnable, DisposableBean {
     private boolean isRunning = true;
     private final InputPool inputPool;
     private final Scanner scanner = new Scanner(System.in);
@@ -21,6 +22,11 @@ public class SystemInputCommandProducer implements Runnable{
     }
 
     public void stop(){
+        this.isRunning = false;
+    }
+
+    @Override
+    public void destroy() throws Exception {
         this.isRunning = false;
     }
 }

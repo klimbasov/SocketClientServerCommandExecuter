@@ -4,7 +4,7 @@ import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.SearchableSocketIOWrapperPool;
+import by.bsuir.instrumental.pool.SearchablePool;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.packet.PacketFlags;
 import lombok.Getter;
@@ -20,7 +20,7 @@ import java.util.Optional;
 public class SocketSendTaskImpl implements Task {
     private static final byte[] SERVER_ID = "0.0.0.0:0::0.0.0.0:0".getBytes();  //todo remove this by any means
     private final Pool<Packet> packetPool;
-    private final SearchableSocketIOWrapperPool searchableSocketIOWrapperPool;
+    private final SearchablePool<String, AbstractNodeIOWrapper> searchableSocketIOWrapperPool;
     @Setter
     @Getter
     private int requestsPerCall;

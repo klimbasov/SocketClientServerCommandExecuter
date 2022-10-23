@@ -9,7 +9,7 @@ import lombok.Setter;
 import java.io.*;
 import java.util.Optional;
 
-public abstract class AbstractNodeIOWrapper implements AutoCloseable, Comparable<AbstractNodeIOWrapper> {
+public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIOWrapper> {
     @Getter
     @Setter(AccessLevel.PROTECTED)
     private String socketId;

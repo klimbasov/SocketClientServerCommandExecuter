@@ -7,10 +7,12 @@ import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
 import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -27,6 +29,7 @@ public class SocketSendTaskImpl implements Task {
     private final Pool<Packet> packetPool;
     @Setter
     @Getter
+    @Value("${client.timing.sendIterationsPerTaskExecution}")
     private int requestsPerCall;
 
     @Override
@@ -46,7 +49,7 @@ public class SocketSendTaskImpl implements Task {
     private void performSendingPackage(Packet packet) {
         try {
             socketIOWrapper.send(packet);
-        } catch (IOException e) {
+        } catch (RuntimeException e) {
             handleSendingFault(packet);
         }
     }

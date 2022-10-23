@@ -1,0 +1,9 @@
+client:
+  connectivity:
+    ip: 127.0.0.3
+    port: 8081
+  timing:
+    sendIterationsPerTaskExecution: 3
+    receiveIterationsPerTaskExecution: 3
+    fileIterationsPerTaskExecution: 3
+    inputReadIterationsPerTaskExecution: 3

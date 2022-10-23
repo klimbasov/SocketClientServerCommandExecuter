@@ -4,13 +4,16 @@ import by.bsuir.instrumental.pool.Pool;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class AsyncTaskRunner implements Runnable {
+@Slf4j
+public class AsyncTaskRunner implements Runnable, DisposableBean {
     private final Pool<Task> taskPool;
     @Getter
     @Setter
@@ -22,11 +25,22 @@ public class AsyncTaskRunner implements Runnable {
             Optional<Task> optional = taskPool.poll();
             if (optional.isPresent()) {
                 Task task = optional.get();
-                task.run();
+                try {
+                    task.run();
+                }catch (RuntimeException e){
+                    log.error(e.getMessage());
+                }
                 taskPool.offer(task);  //todo if false returns, some exceptional queue state was happen
             } else {
                 isRunning = false;
             }
+            Thread.yield();
         }
+    }
+
+
+    @Override
+    public void destroy() throws Exception {
+        this.isRunning = false;
     }
 }

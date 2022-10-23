@@ -13,7 +13,7 @@ public class Server implements CommandLineRunner {
     private final AsyncTaskRunner runner;
 
     public static void main(String[] args) {
-        new SpringApplicationBuilder().web(WebApplicationType.NONE).run(args);
+        new SpringApplicationBuilder(Server.class).web(WebApplicationType.NONE).run(args);
     }
 
     @Override

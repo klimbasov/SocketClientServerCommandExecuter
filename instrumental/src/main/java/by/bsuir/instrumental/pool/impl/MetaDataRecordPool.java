@@ -1,6 +1,6 @@
 package by.bsuir.instrumental.pool.impl;
 
-import by.bsuir.instrumental.command.service.MetaDataRecord;
+import by.bsuir.instrumental.service.MetaDataRecord;
 import by.bsuir.instrumental.pool.SearchablePool;
 
 import java.util.HashMap;

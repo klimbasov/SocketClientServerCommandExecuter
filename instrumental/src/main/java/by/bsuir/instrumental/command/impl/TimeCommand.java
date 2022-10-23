@@ -4,11 +4,12 @@ import by.bsuir.instrumental.command.AbstractCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 
 public class TimeCommand extends AbstractCommand {
-    public TimeCommand(String[] flags, String[] shortenFlags, Map<String, Class<?>> options, Map<String, Class<?>> shortenOptions, String name) {
-        super(flags, shortenFlags, options, shortenOptions, name);
+    public TimeCommand() {
+        super(new String[]{}, new String[]{}, new HashMap<>(), new HashMap<>(), "time", new Class<?>[]{});
     }
 
     @Override

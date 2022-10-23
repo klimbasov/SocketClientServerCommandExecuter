@@ -1,7 +1,7 @@
 package by.bsuir.instrumental.command.impl;
 
 import by.bsuir.instrumental.command.AbstractCommand;
-import by.bsuir.instrumental.command.service.MetaDataRecord;
+import by.bsuir.instrumental.service.MetaDataRecord;
 import by.bsuir.instrumental.input.StructuredCommand;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
