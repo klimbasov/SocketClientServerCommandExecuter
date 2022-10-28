@@ -18,7 +18,7 @@ public class PacketConverter {
     public List<Packet> toPacket(StructuredCommand command, byte[] sourceId, byte[] targetId) throws IOException {
         List<Packet> packets = new LinkedList<>();
         byte[] body = serialise(command);
-        Packet packet = new Packet(body, sourceId, targetId, PacketType.COMMAND_PACKAGE.type, PacketFlags.ACK.flagValue);
+        Packet packet = new Packet(body, sourceId, targetId, PacketType.COMMAND_PACKAGE.typeId, PacketFlags.ACK.flagValue);
         packets.add(packet);
         return packets;
     }

@@ -21,9 +21,10 @@ public class Client implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) throws InterruptedException {
         Thread inputThread = new Thread(systemInputProducer);
         inputThread.start();
         runner.run();
+        inputThread.join();
     }
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -18,6 +19,10 @@ public class AsyncTaskRunner implements Runnable, DisposableBean {
     @Getter
     @Setter
     private boolean isRunning = true;
+
+    @Getter
+    @Setter
+    private int sleepTime = 50;
 
     @Override
     public void run() {
@@ -34,7 +39,11 @@ public class AsyncTaskRunner implements Runnable, DisposableBean {
             } else {
                 isRunning = false;
             }
-            Thread.yield();
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                log.error(e.getMessage());
+            }
         }
     }
 

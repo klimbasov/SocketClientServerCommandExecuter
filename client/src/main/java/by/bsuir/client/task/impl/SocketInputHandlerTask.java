@@ -6,7 +6,7 @@ import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.Pool;
 import by.bsuir.instrumental.task.Task;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
  * Map user Input to command packets
  */
 @Component
-@RequiredArgsConstructor
 public class SocketInputHandlerTask implements Task {
     /**
      * Pool of raw user input
@@ -32,6 +31,18 @@ public class SocketInputHandlerTask implements Task {
 
     private final RawInputStructuredCommandAdapter adapter;
     private final StructuredCommandPacketMapper commandPacketMapper;
+
+    public SocketInputHandlerTask(
+            InputPool inputPool,
+            @Qualifier("outputPoll") Pool<Packet> packetPool,
+            RawInputStructuredCommandAdapter adapter,
+            StructuredCommandPacketMapper commandPacketMapper) {
+        this.inputPool = inputPool;
+        this.packetPool = packetPool;
+        this.adapter = adapter;
+        this.commandPacketMapper = commandPacketMapper;
+    }
+
     @Override
     public void run() {
         for (int counter = 0; counter < ITERATION_PER_CALL; counter++){

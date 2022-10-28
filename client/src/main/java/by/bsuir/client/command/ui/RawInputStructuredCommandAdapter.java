@@ -3,6 +3,8 @@ package by.bsuir.client.command.ui;
 import by.bsuir.instrumental.input.StructuredCommand;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -24,7 +26,7 @@ public class RawInputStructuredCommandAdapter {
             List<StructuredCommand.CommandComponent> components = structCommandSignature(atomicCommand);
             structuredCommand
                     .setTargetIdentifier(components.get(0).getValue())
-                    .setCommand(components.get(0).getValue())
+                    .setCommand(components.get(1).getValue())
                     .setComponents(getComponents(components));
             structuredCommandList.add(structuredCommand);
         }
@@ -52,9 +54,9 @@ public class RawInputStructuredCommandAdapter {
     }
 
     private List<StructuredCommand.CommandComponent> getComponents(List<StructuredCommand.CommandComponent> command){
-        List<StructuredCommand.CommandComponent> components = new LinkedList<>();
+        List<StructuredCommand.CommandComponent> components = new ArrayList<>();
         if(command.size() >= 3){
-            components = command.subList(2, command.size()-1);
+            components = new ArrayList<>(command.subList(2, command.size()));
         }
         return components;
     }

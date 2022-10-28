@@ -1,0 +1,3 @@
+client:
+  connectivity:
+    ip: 127.0.0.4

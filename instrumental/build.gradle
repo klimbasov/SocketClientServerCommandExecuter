@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.hibernate:hibernate-validator:8.0.0.Final'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.springframework.boot:spring-boot-starter:2.7.4'
+}
+
+test {
+    useJUnitPlatform()
+}

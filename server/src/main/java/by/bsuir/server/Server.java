@@ -1,5 +1,7 @@
 package by.bsuir.server;
 
+import by.bsuir.instrumental.command.factory.impl.CommandFactoryImpl;
+import by.bsuir.instrumental.command.impl.ShowCommandImpl;
 import by.bsuir.instrumental.task.AsyncTaskRunner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

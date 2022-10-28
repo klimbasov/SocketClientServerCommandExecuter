@@ -4,10 +4,11 @@ import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.input.StructuredCommand;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import lombok.RequiredArgsConstructor;
+import by.bsuir.instrumental.slftp.SlftpController;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -16,18 +17,27 @@ import java.util.Optional;
 import java.util.Queue;
 
 @Component
-@RequiredArgsConstructor
 public class ClientIOWrapper extends AbstractNodeIOWrapper {
+
+    private final SlftpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
-    public void setSocketId(String socketId){
-        super.setSocketId(socketId);
+
+    public ClientIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, SlftpController controller) {
+        super(holder);
+        this.processor = processor;
+        this.commandFactory = commandFactory;
+        this.controller = controller;
     }
 
     @Override
     public Optional<Packet> receive() {
-        return Optional.ofNullable(packetQueue.poll());
+        Optional<Packet> optional = Optional.ofNullable(packetQueue.poll());
+        if(optional.isEmpty()){
+            optional = Optional.ofNullable(controller.receive());
+        }
+        return optional;
     }
 
     @Override
@@ -37,13 +47,23 @@ public class ClientIOWrapper extends AbstractNodeIOWrapper {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);
             case INFORM_PACKAGE -> informPacketHandler(packet);
             case DATA_PACKAGE -> dataPackageHandler(packet);
+            case SLFTP_PACKAGE -> slftpPackageHandler(packet);
         }
+    }
+
+    private void slftpPackageHandler(Packet packet) {
+        controller.handleRequest(packet);
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
     }
 
     private void dataPackageHandler(Packet packet) {
     }
 
-    private void informPacketHandler(Packet packet){}
+    private void informPacketHandler(Packet packet){System.out.println(new String(packet.getBody()));}
 
     private void commandPacketHandler(Packet packet) {
         List<StructuredCommand> structuredCommandList = processor.toStructuredCommand(List.of(packet));
@@ -54,9 +74,14 @@ public class ClientIOWrapper extends AbstractNodeIOWrapper {
                             response.getBytes(),
                             packet.getTargetId(),
                             packet.getSourceId(),
-                            PacketType.INFORM_PACKAGE.type,
+                            PacketType.INFORM_PACKAGE.typeId,
                             PacketFlags.ACK.flagValue);
                 }).toList();
         results.forEach(packetQueue::offer);
+    }
+
+    @Override
+    public void close() throws Exception {
+
     }
 }

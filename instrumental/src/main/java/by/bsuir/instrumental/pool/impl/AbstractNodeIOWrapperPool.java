@@ -1,29 +1,29 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.pool.SearchablePool;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Optional;
-import java.util.Queue;
 
 @Component
 public class AbstractNodeIOWrapperPool implements SearchablePool<String, AbstractNodeIOWrapper> {
-    private final Queue<AbstractNodeIOWrapper> abstractNodeIOWrapperQueue = new LinkedList<>();
+    private final LinkedList<AbstractNodeIOWrapper> abstractNodeIOWrapperQueue = new LinkedList<>();
     private final HashMap<String, AbstractNodeIOWrapper> socketIOWrapperStringHashMap = new HashMap<>();
 
     @Override
     public void offer(AbstractNodeIOWrapper obj) {
-        socketIOWrapperStringHashMap.put(obj.getSocketId(), obj);
+        socketIOWrapperStringHashMap.put(obj.getHolder().getIdentifier(), obj);
         abstractNodeIOWrapperQueue.offer(obj);
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> poll() {
         Optional<AbstractNodeIOWrapper> socketIOWrapper = Optional.ofNullable(abstractNodeIOWrapperQueue.poll());
-        socketIOWrapper.ifPresent(socketIOWrapper1 -> socketIOWrapperStringHashMap.remove(socketIOWrapper1.getSocketId()));
+        socketIOWrapper.ifPresent(socketIOWrapper1 -> socketIOWrapperStringHashMap.remove(socketIOWrapper1.getHolder().getIdentifier()));
         return socketIOWrapper;
     }
 
@@ -35,5 +35,16 @@ public class AbstractNodeIOWrapperPool implements SearchablePool<String, Abstrac
     @Override
     public Optional<AbstractNodeIOWrapper> find(String id) {
         return Optional.ofNullable(socketIOWrapperStringHashMap.get(id));
+    }
+
+    @Override
+    public Optional<AbstractNodeIOWrapper> remove(String id) {
+        AbstractNodeIOWrapper wrapper = socketIOWrapperStringHashMap.remove(id);
+        abstractNodeIOWrapperQueue.remove(wrapper);
+        return Optional.ofNullable(wrapper);
+    }
+
+    public String getNodesIdSnapshot(){
+        return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s += "\n" + s2).orElse("no clients can be showed");
     }
 }

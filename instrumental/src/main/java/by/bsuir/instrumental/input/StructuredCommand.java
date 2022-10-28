@@ -20,12 +20,12 @@ public class StructuredCommand implements Serializable {
     @Getter
     @Setter
     @Accessors(chain = true)
-    public static class CommandComponent {
+    public static class CommandComponent implements Serializable {
         private String value;
         private CommandComponentType type;
 
         @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-        public enum CommandComponentType {
+        public enum CommandComponentType implements Serializable{
             ADDRESS,
             OPTION_SHORTEN,
             OPTION_FULL,

@@ -9,10 +9,6 @@ repositories {
 }
 
 dependencies {
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
-    // https://mvnrepository.com/artifact/org.projectlombok/lombok
     compileOnly 'org.projectlombok:lombok:1.18.24'
 // https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
     implementation 'org.hibernate:hibernate-validator:8.0.0.Final'

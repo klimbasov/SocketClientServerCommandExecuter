@@ -14,5 +14,5 @@ public class Packet implements Serializable {
     byte[] sourceId;
     byte[] targetId;
     short type;
-    int flags;
+    short flags;
 }

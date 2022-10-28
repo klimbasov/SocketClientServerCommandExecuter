@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class EchoCommand extends AbstractCommand {
 
-    public EchoCommand(Map<String, Class<?>> options, Map<String, Class<?>> shortenOptions, String name) {
+    public EchoCommand() {
         super(new String[]{}, new String[]{}, new HashMap<>(), new HashMap<>(), "echo", new Class<?>[]{});
     }
 

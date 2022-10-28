@@ -1,23 +1,25 @@
 package by.bsuir.server.config;
 
-import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.command.factory.impl.CommandFactoryImpl;
+import by.bsuir.instrumental.command.impl.CopyFileCommand;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
-import by.bsuir.instrumental.node.SocketIOWrapper;
-import by.bsuir.instrumental.node.token.IdentificationHolder;
-import by.bsuir.instrumental.node.token.impl.IdentificationHolderImpl;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
+import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.Pool;
 import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
 import by.bsuir.instrumental.pool.impl.PacketPoolImpl;
+import by.bsuir.instrumental.slftp.SlftpController;
+import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
+import by.bsuir.instrumental.slftp.pool.InputFileRecordUriPool;
 import by.bsuir.instrumental.task.AsyncTaskRunner;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.pool.impl.TaskPoolImpl;
+import by.bsuir.instrumental.util.NodeIdBuilder;
 import by.bsuir.server.socket.ServerIOWrapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
@@ -27,10 +29,13 @@ import java.util.List;
 @Configuration
 public class ServerConfig {
 
-    @Value("${custom.server.port}")
+    @Value("${custom.server.connectivity.port}")
     private int port;
-    @Value("${custom.server.so_timeout}")
+    @Value("${custom.server.connectivity.so_timeout}")
     private int soTimeout;
+
+    @Value("${custom.server.timing.loopWaiting}")
+    private int runnerTimeout;
 
     @Bean
     public ServerSocket serverSocket() {
@@ -45,39 +50,56 @@ public class ServerConfig {
     }
 
     @Bean
+    public SlftpController controller(IdentificationHolder holder){
+        return new SlftpController(holder, new FileProcessUriPool(), new InputFileRecordUriPool());
+    }
+    @Bean
     @Primary
     public Pool<Task> taskPool(List<Task> tasks) {
         Pool<Task> taskPool = new TaskPoolImpl();
         tasks.forEach(taskPool::offer);
         return taskPool;
     }
-
     @Bean
     public IdentificationHolder identificationHolder(){
-        return new IdentificationHolderImpl();
+        IdentificationHolderImpl holder = new IdentificationHolderImpl();
+        holder.setId(NodeIdBuilder.getServerId());
+        return holder;
     }
     @Bean
     public StructuredCommandPacketMapper commandPacketMapper(IdentificationHolder identificationHolder){
         return new StructuredCommandPacketMapper(identificationHolder);
     }
 
+    //@Bean(name = "inputPool")
     @Bean
-    public Pool<Packet> packetPool(){
+    public Pool<Packet> inputPacketPool(){
         return new PacketPoolImpl();
     }
 
+//    @Bean(name = "outputPool")
+//    public Pool<Packet> outputPacketPool(){
+//        return new PacketPoolImpl();
+//    }
+
     @Bean
-    public CommandFactory commandFactory(){
-        return new CommandFactoryImpl();
+    public CommandFactoryImpl commandFactory(SlftpController controller){
+        CommandFactoryImpl factory = new CommandFactoryImpl();
+        factory.addCommand("copy", new CopyFileCommand(controller));
+        return factory;
     }
     @Bean
-    public AbstractNodeIOWrapperPool nodeIOWrapperPool(ServerIOWrapper serverIOWrapper){
-        AbstractNodeIOWrapperPool nodeIOWrapperPool = new AbstractNodeIOWrapperPool();
-        nodeIOWrapperPool.offer(serverIOWrapper);
-        return nodeIOWrapperPool;
+    public AbstractNodeIOWrapperPool nodeIOWrapperPool(ServerIOWrapper wrapper, CommandFactoryImpl factory){
+        AbstractNodeIOWrapperPool wrapperPool = new AbstractNodeIOWrapperPool();
+        wrapperPool.offer(wrapper);
+        factory.setWrapperPool(wrapperPool);
+        return  wrapperPool;
     }
+
     @Bean(destroyMethod = "destroy")
     public AsyncTaskRunner asyncTaskRunner(Pool<Task> taskPool){
-        return new AsyncTaskRunner(taskPool);
+        AsyncTaskRunner runner = new AsyncTaskRunner(taskPool);
+        runner.setSleepTime(runnerTimeout);
+        return runner;
     }
 }

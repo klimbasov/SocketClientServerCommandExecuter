@@ -2,8 +2,12 @@ package by.bsuir.instrumental.command.factory.impl;
 
 import by.bsuir.instrumental.command.Command;
 import by.bsuir.instrumental.command.factory.CommandFactory;
+import by.bsuir.instrumental.command.impl.DirCommand;
 import by.bsuir.instrumental.command.impl.EchoCommand;
+import by.bsuir.instrumental.command.impl.ShowCommandImpl;
+import by.bsuir.instrumental.command.impl.TimeCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
+import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +16,7 @@ import static java.util.Objects.nonNull;
 
 public class CommandFactoryImpl implements CommandFactory {
     private static final String COMMAND_NOT_FOUND_RESPONSE = "command not found";
+    private AbstractNodeIOWrapperPool wrapperPool;
     private final Map<String, Command> commandMap = new HashMap<>();
 
     public CommandFactoryImpl() {
@@ -29,8 +34,19 @@ public class CommandFactoryImpl implements CommandFactory {
         return response;
     }
 
+    public void addCommand(String alias, Command command){
+        commandMap.put(alias, command);
+    }
+
     private void initCommandMap() {
-        commandMap.put("echo", new EchoCommand(new HashMap<>(), new HashMap<>(), "echo"));
-        commandMap.put("time", new EchoCommand(new HashMap<>(), new HashMap<>(), "time"));
+        commandMap.put("echo", new EchoCommand());
+        commandMap.put("time", new TimeCommand());
+        commandMap.put("dir", new DirCommand());
+    }
+
+    public void setWrapperPool(AbstractNodeIOWrapperPool wrapperPool) {
+        this.wrapperPool = wrapperPool;
+        ShowCommandImpl showCommand = new ShowCommandImpl(wrapperPool);
+        commandMap.put("show", showCommand);
     }
 }

@@ -1,31 +1,28 @@
 package by.bsuir.instrumental.input;
 
-import by.bsuir.instrumental.node.token.IdentificationHolder;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import jakarta.validation.constraints.NotNull;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-public class StructuredCommandPacketMapper implements AutoCloseable{
+public class StructuredCommandPacketMapper implements DisposableBean
+{
     private final IdentificationHolder identificationHolder;
-
-    private final ByteArrayOutputStream byteArrayOutputStream;
-    private final ObjectOutputStream objectOutputStream;
 
     public StructuredCommandPacketMapper(IdentificationHolder identificationHolder) {
         this.identificationHolder = identificationHolder;
-        byteArrayOutputStream = new ByteArrayOutputStream();
-        try {
-            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        byteArrayOutputStream = new ByteArrayOutputStream();
+//        try {
+//            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public List<Packet> toPackets(List<StructuredCommand> structuredCommandList) {
@@ -33,9 +30,9 @@ public class StructuredCommandPacketMapper implements AutoCloseable{
         for (StructuredCommand command :
                 structuredCommandList) {
             Packet packet = new Packet(serialise(command),
-                    identificationHolder.getIdentifier(),
+                    identificationHolder.getIdentifier().getBytes(),
                     command.getTargetIdentifier().getBytes(),
-                    PacketType.COMMAND_PACKAGE.type,
+                    PacketType.COMMAND_PACKAGE.typeId,
                     PacketFlags.ACK.flagValue
             );
             packets.add(packet);
@@ -57,18 +54,19 @@ public class StructuredCommandPacketMapper implements AutoCloseable{
     }
 
     private byte[] serialise(StructuredCommand command) {
-        try {
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+        ){
             objectOutputStream.writeObject(command);
+            return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return byteArrayOutputStream.toByteArray();
     }
 
     private StructuredCommand deserialize(byte[] serializedCommand){
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedCommand);
-        try {
-            ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedCommand);
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);){
             return (StructuredCommand) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -77,8 +75,8 @@ public class StructuredCommandPacketMapper implements AutoCloseable{
     }
 
     @Override
-    public void close() throws Exception {
-        objectOutputStream.close();
-        byteArrayOutputStream.close();
+    public void destroy() throws Exception {
+//        objectOutputStream.close();
+//        byteArrayOutputStream.close();
     }
 }
