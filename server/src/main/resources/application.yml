@@ -8,5 +8,4 @@ custom:
       loopWaiting: 10
       sendIterationsPerTaskExecution: 3
       receiveIterationsPerTaskExecution: 3
-      fileIterationsPerTaskExecution: 3
-      socketAcceptIterationsPerTaskExecution: 3
+      socketAcceptIterationsPerTaskExecution: 1

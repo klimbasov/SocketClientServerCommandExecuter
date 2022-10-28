@@ -7,7 +7,7 @@ import by.bsuir.instrumental.command.impl.EchoCommand;
 import by.bsuir.instrumental.command.impl.ShowCommandImpl;
 import by.bsuir.instrumental.command.impl.TimeCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
-import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
+import by.bsuir.instrumental.pool.SnapshottingPool;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +16,6 @@ import static java.util.Objects.nonNull;
 
 public class CommandFactoryImpl implements CommandFactory {
     private static final String COMMAND_NOT_FOUND_RESPONSE = "command not found";
-    private AbstractNodeIOWrapperPool wrapperPool;
     private final Map<String, Command> commandMap = new HashMap<>();
 
     public CommandFactoryImpl() {
@@ -44,8 +43,7 @@ public class CommandFactoryImpl implements CommandFactory {
         commandMap.put("dir", new DirCommand());
     }
 
-    public void setWrapperPool(AbstractNodeIOWrapperPool wrapperPool) {
-        this.wrapperPool = wrapperPool;
+    public void setWrapperPool(SnapshottingPool wrapperPool) {
         ShowCommandImpl showCommand = new ShowCommandImpl(wrapperPool);
         commandMap.put("show", showCommand);
     }

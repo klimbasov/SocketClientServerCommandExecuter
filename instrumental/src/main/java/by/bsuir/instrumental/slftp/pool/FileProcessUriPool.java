@@ -6,7 +6,7 @@ import by.bsuir.instrumental.slftp.meta.FileCopyProcess;
 import java.util.*;
 
 public class FileProcessUriPool implements SearchablePool<String, FileCopyProcess> {
-    private final Map<String, FileCopyProcess> fileOutputStreamMap = new HashMap<>();
+    private final Map<String, FileCopyProcess> fileOutputStreamMap = new WeakHashMap<>();
     private final LinkedList<FileCopyProcess> fileCopyProcesses = new LinkedList<>();
     @Override
     public void offer(FileCopyProcess obj) {
@@ -36,9 +36,5 @@ public class FileProcessUriPool implements SearchablePool<String, FileCopyProces
         FileCopyProcess copyProcess = fileOutputStreamMap.remove(id);
         fileCopyProcesses.remove(copyProcess);
         return Optional.ofNullable(copyProcess);
-    }
-
-    public List<FileCopyProcess> getInternal(){
-        return fileCopyProcesses;
     }
 }

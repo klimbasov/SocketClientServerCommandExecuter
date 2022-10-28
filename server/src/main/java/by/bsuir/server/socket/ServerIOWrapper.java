@@ -11,10 +11,7 @@ import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.slftp.SlftpController;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 
 @Component
 public class ServerIOWrapper extends AbstractNodeIOWrapper {
@@ -45,8 +42,6 @@ public class ServerIOWrapper extends AbstractNodeIOWrapper {
         switch (type){
             case COMMAND_PACKAGE -> commandPacketHandler(packet);
             case INFORM_PACKAGE -> informPacketHandler(packet);
-            case DATA_PACKAGE -> dataPackageHandler(packet);
-            case CONFIGURE_PACKAGE -> configPackageHandler(packet);
             case SLFTP_PACKAGE -> slftpPackageHandler(packet);
 
         }
@@ -61,16 +56,8 @@ public class ServerIOWrapper extends AbstractNodeIOWrapper {
         return true;
     }
 
-    private void configPackageHandler(Packet packet) {
-
-    }
-
-    private void dataPackageHandler(Packet packet) {
-
-    }
-
     private void informPacketHandler(Packet packet) {
-        System.out.println(packet.getBody());
+        System.out.println(Arrays.toString(packet.getBody()));
     }
 
     private void commandPacketHandler(Packet packet) {
@@ -89,7 +76,7 @@ public class ServerIOWrapper extends AbstractNodeIOWrapper {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
 
     }
 }

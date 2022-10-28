@@ -4,19 +4,17 @@ import by.bsuir.instrumental.slftp.dto.FileMetaData;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.io.Closeable;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 @Data
 @Accessors(chain = true)
 public class FileCopyProcess implements Closeable {
+    long mils;
     FileMetaData metaData;
     short timesDeclined;
     long portion;
     long portionsQuantity;
-    FileOutputStream stream;
+    OutputStream stream;
 
     @Override
     public void close() throws IOException {

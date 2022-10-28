@@ -1,12 +1,12 @@
-package by.bsuir.instrumental.task;
+package by.bsuir.instrumental.task.runner.impl;
 
 import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.task.Task;
+import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -14,7 +14,7 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AsyncTaskRunner implements Runnable, DisposableBean {
+public class AsyncTaskRunner implements TaskRunner {
     private final Pool<Task> taskPool;
     @Getter
     @Setter
@@ -49,7 +49,7 @@ public class AsyncTaskRunner implements Runnable, DisposableBean {
 
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
         this.isRunning = false;
     }
 }

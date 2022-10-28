@@ -7,20 +7,18 @@ import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
-import by.bsuir.instrumental.pool.impl.PacketPoolImpl;
+import by.bsuir.instrumental.pool.impl.*;
 import by.bsuir.instrumental.slftp.SlftpController;
 import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
 import by.bsuir.instrumental.slftp.pool.InputFileRecordUriPool;
-import by.bsuir.instrumental.task.AsyncTaskRunner;
+import by.bsuir.instrumental.task.runner.TaskRunner;
+import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
 import by.bsuir.instrumental.task.Task;
-import by.bsuir.instrumental.pool.impl.TaskPoolImpl;
 import by.bsuir.instrumental.util.NodeIdBuilder;
 import by.bsuir.server.socket.ServerIOWrapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -39,7 +37,7 @@ public class ServerConfig {
 
     @Bean
     public ServerSocket serverSocket() {
-        ServerSocket serverSocket = null;
+        ServerSocket serverSocket;
         try {
             serverSocket = new ServerSocket(port);
             serverSocket.setSoTimeout(soTimeout);
@@ -53,13 +51,7 @@ public class ServerConfig {
     public SlftpController controller(IdentificationHolder holder){
         return new SlftpController(holder, new FileProcessUriPool(), new InputFileRecordUriPool());
     }
-    @Bean
-    @Primary
-    public Pool<Task> taskPool(List<Task> tasks) {
-        Pool<Task> taskPool = new TaskPoolImpl();
-        tasks.forEach(taskPool::offer);
-        return taskPool;
-    }
+
     @Bean
     public IdentificationHolder identificationHolder(){
         IdentificationHolderImpl holder = new IdentificationHolderImpl();
@@ -71,16 +63,10 @@ public class ServerConfig {
         return new StructuredCommandPacketMapper(identificationHolder);
     }
 
-    //@Bean(name = "inputPool")
     @Bean
     public Pool<Packet> inputPacketPool(){
         return new PacketPoolImpl();
     }
-
-//    @Bean(name = "outputPool")
-//    public Pool<Packet> outputPacketPool(){
-//        return new PacketPoolImpl();
-//    }
 
     @Bean
     public CommandFactoryImpl commandFactory(SlftpController controller){
@@ -89,16 +75,16 @@ public class ServerConfig {
         return factory;
     }
     @Bean
-    public AbstractNodeIOWrapperPool nodeIOWrapperPool(ServerIOWrapper wrapper, CommandFactoryImpl factory){
-        AbstractNodeIOWrapperPool wrapperPool = new AbstractNodeIOWrapperPool();
+    public AbstructNodeIOWrapperOtimazedPool nodeIOWrapperPool(ServerIOWrapper wrapper, CommandFactoryImpl factory){
+        AbstructNodeIOWrapperOtimazedPool wrapperPool = new AbstructNodeIOWrapperOtimazedPool();
         wrapperPool.offer(wrapper);
         factory.setWrapperPool(wrapperPool);
         return  wrapperPool;
     }
 
     @Bean(destroyMethod = "destroy")
-    public AsyncTaskRunner asyncTaskRunner(Pool<Task> taskPool){
-        AsyncTaskRunner runner = new AsyncTaskRunner(taskPool);
+    public TaskRunner taskRunner(List<Task> tasks){
+        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]));
         runner.setSleepTime(runnerTimeout);
         return runner;
     }

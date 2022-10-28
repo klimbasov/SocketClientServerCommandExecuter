@@ -1,9 +1,8 @@
-package by.bsuir.client.socket.impl;
+package by.bsuir.instrumental.node;
 
 import by.bsuir.instrumental.command.factory.CommandFactory;
-import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.input.StructuredCommand;
-import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
@@ -17,14 +16,14 @@ import java.util.Optional;
 import java.util.Queue;
 
 @Component
-public class ClientIOWrapper extends AbstractNodeIOWrapper {
+public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     private final SlftpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
 
-    public ClientIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, SlftpController controller) {
+    public EndNodeIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, SlftpController controller) {
         super(holder);
         this.processor = processor;
         this.commandFactory = commandFactory;
@@ -76,7 +75,7 @@ public class ClientIOWrapper extends AbstractNodeIOWrapper {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
 
     }
 }

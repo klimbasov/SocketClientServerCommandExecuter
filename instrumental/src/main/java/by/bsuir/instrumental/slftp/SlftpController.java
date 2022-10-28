@@ -31,18 +31,18 @@ public class SlftpController {
     private final Queue<Packet> packetQueue = new LinkedList<>();
 
     public void handleRequest(Packet packet){
-        if(packet.getType()!= PacketType.SLFTP_PACKAGE.typeId){
+        if(packet.getType() != PacketType.SLFTP_PACKAGE.typeId){
             throw new RuntimeException("slftp controller got non slftp packet");
         }
         switch (SlftpPacketType.getByTypeId(packet.getFlags())){
             case GREETING -> handleGreeting(packet);
             case PORTION -> handlePortion(packet);
             case PORTION_REQ -> handlePortionReq(packet);
-            case UNDEFINED -> handleUndefined(packet);
             case ABORT -> handleAbort(packet);
             case DECLINE -> hendleDecline(packet);
             case NOT_PASSED -> handleNotPassed(packet);
-        };
+            default -> log.error("nothing great happened");
+        }
     }
 
     private void handleNotPassed(Packet packet) {
@@ -54,21 +54,9 @@ public class SlftpController {
         return packetQueue.poll();
     }
 
-//    private void generatePortionRequests() {
-//        processSearchablePool.getInternal().forEach(copyProcess -> {
-//            PortionRequest request = new PortionRequest()
-//                    .setFileUri(copyProcess.getMetaData().getUrl())
-//                    .setHostId(copyProcess.getMetaData().getHostId())
-//                    .setPortion(copyProcess.getPortion());
-//            sendPacket(serializeBody(request), holder.getIdentifier().getBytes(), copyProcess.getMetaData().getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
-//        });
-//    }
-
     public void initCommunicationWithFileName(String uri, String destinationId){
         Optional<FileMetaData> optional = getMetadataByFileUrl(uri);
-        if(optional.isPresent()){
-            sendPacket(serializeBody(optional.get()), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING);
-        }
+        optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING));
     }
 
     private void hendleDecline(Packet packet) {
@@ -91,10 +79,6 @@ public class SlftpController {
     private void handleAbort(Packet packet) {
         FileMetaData metaData = deserializeBody(packet.getBody());
         inputFileRecordSearchablePool.remove(metaData.getUrl());
-    }
-
-    private void handleUndefined(Packet packet) {
-
     }
 
     private void handlePortionReq(Packet packet) {
@@ -125,7 +109,7 @@ public class SlftpController {
                 writePortionToFile(copyProcess, portion);
             }
             if(copyProcess.getPortion() == copyProcess.getPortionsQuantity()){
-                log.info("transferring " + copyProcess.getMetaData().getUrl() + " finished.");
+                log.info("transferring " + copyProcess.getMetaData().getUrl() + " finished. Time consumed " + (System.currentTimeMillis() - copyProcess.getMils()));
                 sendPacket(serializeBody(copyProcess.getMetaData()), packet.getTargetId(), packet.getSourceId(), SlftpPacketType.ABORT);
                 processSearchablePool.remove(copyProcess.getMetaData().getUrl());
                 closeClosable(copyProcess);
@@ -142,11 +126,10 @@ public class SlftpController {
     }
 
     private static PortionRequest getPortionRequestFromCopy(FileCopyProcess copyProcess) {
-        PortionRequest request = new PortionRequest()
+        return new PortionRequest()
             .setFileUri(copyProcess.getMetaData().getUrl())
             .setHostId(copyProcess.getMetaData().getHostId())
             .setPortion(copyProcess.getPortion());
-        return request;
     }
 
     private static void closeClosable(FileCopyProcess copyProcess) {
@@ -164,12 +147,13 @@ public class SlftpController {
 
         if(notAlreadyLoading(metaData, copyProcess)){
             FileOutputStream outputStream = openOutputStream(metaData);
-
+            BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
             copyProcess = new FileCopyProcess()
+                    .setMils(System.currentTimeMillis())
                     .setMetaData(metaData)
                     .setPortion(0)
                     .setPortionsQuantity(portionsQuantity)
-                    .setStream(outputStream);
+                    .setStream(bufferedOutputStream);
             processSearchablePool.offer(copyProcess);
             PortionRequest request = getPortionRequestFromCopy(copyProcess);
             sendPacket(serializeBody(request), holder.getIdentifier().getBytes(), copyProcess.getMetaData().getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
@@ -187,7 +171,7 @@ public class SlftpController {
         return new Portion()
                 .setPortionNum(request.getPortion())
                 .setFileUri(request.getFileUri())
-                .setHostId(request.getHostId())
+                .setHostId(request.getHostId().getBytes())
                 .setActualSize(size)
                 .setContent(content);
     }
@@ -227,7 +211,7 @@ public class SlftpController {
     private void writePortionToFile(FileCopyProcess copyProcess, Portion portion) {
         byte[] bytes = portion.getContent();
         int length = (int) portion.getActualSize();
-        FileOutputStream outputStream = copyProcess.getStream();
+        OutputStream outputStream = copyProcess.getStream();
         try {
             outputStream.write(bytes, 0,  length);
             log.info("portion " + copyProcess.getPortion() + " of " + copyProcess.getMetaData().getSize()/PORTION_SIZE + " transferred" + copyProcess.getMetaData().getUrl());
@@ -266,9 +250,7 @@ public class SlftpController {
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)
         ){
             return (T) objectInputStream.readObject();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
+        } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

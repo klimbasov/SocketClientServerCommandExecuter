@@ -10,11 +10,11 @@ import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.Pool;
 import by.bsuir.instrumental.pool.impl.PacketPoolImpl;
-import by.bsuir.instrumental.pool.impl.TaskPoolImpl;
 import by.bsuir.instrumental.slftp.SlftpController;
 import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
 import by.bsuir.instrumental.slftp.pool.InputFileRecordUriPool;
-import by.bsuir.instrumental.task.AsyncTaskRunner;
+import by.bsuir.instrumental.task.runner.TaskRunner;
+import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -39,13 +38,19 @@ public class ClientConfig {
     @Value("${client.timing.loopWaiting}")
     private int runnerTimeout;
 
-    @Bean
-    @Primary
-    public Pool<Task> taskPool(List<Task> tasks) {
-        Pool<Task> taskPool = new TaskPoolImpl();
-        tasks.forEach(taskPool::offer);
-        return taskPool;
-    }
+//    @Bean
+//    @Primary
+//    public Pool<Task> taskPool(List<Task> tasks) {
+//        Pool<Task> taskPool = new TaskPoolImpl();
+//        tasks.forEach(taskPool::offer);
+//        return taskPool;
+//    }
+
+//    @Bean
+//    @Primary
+//    public Pool<Task> taskPool(List<Task> tasks) {
+//        return new OptimisedTaskPool(tasks.toArray(new Task[0]));
+//    }
 
     @Bean
     public SlftpController controller(IdentificationHolder holder){
@@ -96,9 +101,10 @@ public class ClientConfig {
     }
 
     @Bean(destroyMethod = "destroy")
-    public AsyncTaskRunner asyncTaskRunner(Pool<Task> taskPool){
-        AsyncTaskRunner runner = new AsyncTaskRunner(taskPool);
+    public TaskRunner taskRunner(List<Task> tasks){
+        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]));
         runner.setSleepTime(runnerTimeout);
         return runner;
     }
+
 }

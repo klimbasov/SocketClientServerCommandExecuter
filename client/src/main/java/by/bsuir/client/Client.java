@@ -1,8 +1,7 @@
 package by.bsuir.client;
 
 import by.bsuir.client.command.ui.SystemInputProducer;
-import by.bsuir.instrumental.task.AsyncTaskRunner;
-import by.bsuir.instrumental.task.Task;
+import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.WebApplicationType;
@@ -13,7 +12,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 @RequiredArgsConstructor
 public class Client implements CommandLineRunner {
 
-    private final AsyncTaskRunner runner;
+    private final TaskRunner runner;
     private final SystemInputProducer systemInputProducer;
 
     public static void main(String[] args) {

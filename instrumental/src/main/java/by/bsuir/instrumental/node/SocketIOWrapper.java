@@ -2,15 +2,12 @@ package by.bsuir.instrumental.node;
 
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
@@ -84,13 +81,17 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     @Override
     public void destroy(){
         try {
-            socket.close();
+            if(socket != null){
+                socket.close();
+            }
         } catch (IOException ignored) {
         }
     }
 
     @Override
     public void close() throws Exception {
-        socket.close();
+        if(socket != null){
+            socket.close();
+        }
     }
 }

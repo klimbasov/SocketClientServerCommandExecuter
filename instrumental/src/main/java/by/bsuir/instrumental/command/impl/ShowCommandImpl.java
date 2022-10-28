@@ -2,14 +2,10 @@ package by.bsuir.instrumental.command.impl;
 
 import by.bsuir.instrumental.command.AbstractCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
-import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.impl.AbstractNodeIOWrapperPool;
-import org.springframework.stereotype.Component;
+import by.bsuir.instrumental.pool.SnapshottingPool;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ShowCommandImpl extends AbstractCommand {
@@ -18,12 +14,10 @@ public class ShowCommandImpl extends AbstractCommand {
     private static final String[] FLAGS = new String[]{"client", "help"};
 
     private final Map<String, Supplier<String>> supplierMap = new HashMap<>();
-    private final AbstractNodeIOWrapperPool wrapperPool;
-    public ShowCommandImpl(AbstractNodeIOWrapperPool wrapperPool){
+    public ShowCommandImpl(SnapshottingPool wrapperPool){
         super(FLAGS, new String[]{}, new HashMap<>(), new HashMap<>(), "show", new Class<?>[]{});
-        this.wrapperPool = wrapperPool;
         supplierMap.put("help", () -> HELP_MSG);
-        supplierMap.put("client", wrapperPool::getNodesIdSnapshot);
+        supplierMap.put("client", wrapperPool::snapshot);
         supplierMap.put(DEFAULT_FLAG_NAME, () -> HELP_MSG);
     }
 

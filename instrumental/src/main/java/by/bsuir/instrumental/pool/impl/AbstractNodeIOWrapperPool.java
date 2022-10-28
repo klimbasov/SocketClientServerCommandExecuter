@@ -1,8 +1,8 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.SnapshottingPool;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.Optional;
 
 @Component
-public class AbstractNodeIOWrapperPool implements SearchablePool<String, AbstractNodeIOWrapper> {
+public class AbstractNodeIOWrapperPool implements SearchablePool<String, AbstractNodeIOWrapper>, SnapshottingPool {
     private final LinkedList<AbstractNodeIOWrapper> abstractNodeIOWrapperQueue = new LinkedList<>();
     private final HashMap<String, AbstractNodeIOWrapper> socketIOWrapperStringHashMap = new HashMap<>();
 
@@ -44,7 +44,8 @@ public class AbstractNodeIOWrapperPool implements SearchablePool<String, Abstrac
         return Optional.ofNullable(wrapper);
     }
 
-    public String getNodesIdSnapshot(){
-        return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s += "\n" + s2).orElse("no clients can be showed");
+    @Override
+    public String snapshot() {
+        return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
     }
 }
