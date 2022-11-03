@@ -4,8 +4,9 @@ import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.QueuePool;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
+import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
@@ -23,8 +24,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SocketSendTaskImpl implements Task {
-    private final Pool<Packet> packetPool;
-    private final SearchablePool<String, AbstractNodeIOWrapper> searchableSocketIOWrapperPool;
+    private final QueuePool<Packet> packetQueuePool;
+    private final SearchableRingPool<String, AbstractNodeIOWrapper> searchableSocketIOWrapperPool;
     @Setter
     @Getter
     @Value("${custom.server.timing.sendIterationsPerTaskExecution}")
@@ -32,8 +33,8 @@ public class SocketSendTaskImpl implements Task {
 
     @Override
     public void run() {
-        for (int counter = 0; counter < requestsPerCall && !packetPool.isEmpty(); counter++) {
-            Optional<Packet> optional = packetPool.poll();
+        for (int counter = 0; counter < requestsPerCall && !packetQueuePool.isEmpty(); counter++) {
+            Optional<Packet> optional = packetQueuePool.poll();
             optional.ifPresent(packet -> {
                 String id = new String(packet.getTargetId());
                 Optional<AbstractNodeIOWrapper> wrapperOptional = searchableSocketIOWrapperPool.find(id);
@@ -52,7 +53,7 @@ public class SocketSendTaskImpl implements Task {
             case SLFTP_PACKAGE -> handleSlftpRollback(packet);
             default -> handleDefault(packet);
         };
-        packetPool.offer(resultPacket);
+        packetQueuePool.offer(resultPacket);
     }
 
     private Packet handleDefault(Packet packet) {
@@ -66,6 +67,23 @@ public class SocketSendTaskImpl implements Task {
 
     }
 
+    private void handleSendingToNode(Packet packet, String id, AbstractNodeIOWrapper socketIOWrapper) {
+        if (socketIOWrapper.isAvailable()) {
+            try {
+                socketIOWrapper.send(packet);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            searchableSocketIOWrapperPool.remove(id);
+            try {
+                socketIOWrapper.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     private Packet handleSlftpRollback(Packet packet) {
         log.error("(slftp)not found host " + packet.getTargetId());
         return new Packet(
@@ -75,23 +93,4 @@ public class SocketSendTaskImpl implements Task {
                 PacketType.SLFTP_PACKAGE.typeId,
                 SlftpPacketType.NOT_PASSED.typeId);
     }
-
-    private void handleSendingToNode(Packet packet, String id, AbstractNodeIOWrapper socketIOWrapper) {
-            if (socketIOWrapper.isAvailable()) {
-                try {
-                    socketIOWrapper.send(packet);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                Optional<AbstractNodeIOWrapper> wrapper = searchableSocketIOWrapperPool.remove(id);
-                if (wrapper.isPresent()) {
-                    try {
-                        wrapper.get().close();
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
 }

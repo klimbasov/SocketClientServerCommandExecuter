@@ -1,7 +1,7 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.pool.SnapshottingPool;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +10,7 @@ import java.util.LinkedList;
 import java.util.Optional;
 
 @Component
-public class AbstractNodeIOWrapperPool implements SearchablePool<String, AbstractNodeIOWrapper>, SnapshottingPool {
+public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<String, AbstractNodeIOWrapper>, SnapshottingPool {
     private final LinkedList<AbstractNodeIOWrapper> abstractNodeIOWrapperQueue = new LinkedList<>();
     private final HashMap<String, AbstractNodeIOWrapper> socketIOWrapperStringHashMap = new HashMap<>();
 

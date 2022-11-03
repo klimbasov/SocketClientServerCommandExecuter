@@ -1,6 +1,6 @@
 package by.bsuir.instrumental.pool.impl;
 
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.task.Task;
 import org.springframework.stereotype.Component;
 
@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.Queue;
 
 @Component
-public class TaskPoolImpl implements Pool<Task> {
+public class TaskQueuePoolImpl implements QueuePool<Task> {
     private final Queue<Task> tasks = new LinkedList<>();
 
     @Override

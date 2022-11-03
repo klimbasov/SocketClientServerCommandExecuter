@@ -39,7 +39,6 @@ public class ServerConnectionTask implements Task {
                 log.info("external socket id : " + socket.getInetAddress());
                 currentSocketIOWrapper.setSocket(socket);
             } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         }
     }

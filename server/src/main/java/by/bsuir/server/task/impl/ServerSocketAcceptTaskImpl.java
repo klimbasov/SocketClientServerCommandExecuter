@@ -3,7 +3,8 @@ package by.bsuir.server.task.impl;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
+import by.bsuir.instrumental.pool.RingPool;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.Getter;
@@ -23,7 +24,7 @@ import java.net.SocketTimeoutException;
 @Slf4j
 public class  ServerSocketAcceptTaskImpl implements Task {
     private final ServerSocket serverSocket;
-    private final Pool<AbstractNodeIOWrapper> socketIOWrapperPool;
+    private final RingPool<AbstractNodeIOWrapper> socketIOWrapperQueuePool;
     @Setter
     @Getter
     @Value("${custom.server.timing.socketAcceptIterationsPerTaskExecution}")
@@ -37,7 +38,7 @@ public class  ServerSocketAcceptTaskImpl implements Task {
                 IdentificationHolderImpl holder = new IdentificationHolderImpl();
                 holder.setId(NodeIdBuilder.buildSocketIdServer(socket));
                 SocketIOWrapper wrapper = new SocketIOWrapper(socket, holder);
-                socketIOWrapperPool.offer(wrapper);
+                socketIOWrapperQueuePool.offer(wrapper);
                 log.info("socket connection established: " + wrapper.getHolder().getIdentifier());
             } catch (SocketTimeoutException ignored) {
             } catch (IOException e) {

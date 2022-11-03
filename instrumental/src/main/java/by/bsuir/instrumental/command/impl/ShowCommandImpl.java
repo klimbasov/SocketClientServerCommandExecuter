@@ -6,6 +6,8 @@ import by.bsuir.instrumental.pool.SnapshottingPool;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ShowCommandImpl extends AbstractCommand {
@@ -23,10 +25,16 @@ public class ShowCommandImpl extends AbstractCommand {
 
     @Override
     public String execute(StructuredCommand command) {
-        return supplierMap.get(command.getComponents().stream()
+        String retVal = HELP_MSG;
+        String supplierAlias = command.getComponents().stream()
                 .filter(
                         commandComponent -> commandComponent.getType() == StructuredCommand.CommandComponent.CommandComponentType.OPTION_FULL
-                ).findFirst().orElseGet(this::createDefault).getValue()).get();
+                ).findFirst().orElseGet(this::createDefault).getValue();
+        Supplier<String> supplier = supplierMap.get(supplierAlias);
+        if(supplier != null){
+            retVal = supplier.get();
+        }
+        return retVal;
     }
 
     private StructuredCommand.CommandComponent createDefault() {

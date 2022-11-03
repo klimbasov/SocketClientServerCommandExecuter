@@ -8,23 +8,20 @@ import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.pool.Pool;
-import by.bsuir.instrumental.pool.impl.PacketPoolImpl;
+import by.bsuir.instrumental.pool.QueuePool;
+import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.slftp.SlftpController;
-import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
-import by.bsuir.instrumental.slftp.pool.InputFileRecordUriPool;
+import by.bsuir.instrumental.slftp.pool.FileProcessUriQueuePool;
+import by.bsuir.instrumental.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
 import by.bsuir.instrumental.task.Task;
-import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.util.List;
 
 @Configuration
@@ -54,18 +51,18 @@ public class ClientConfig {
 
     @Bean
     public SlftpController controller(IdentificationHolder holder){
-        return new SlftpController(holder, new FileProcessUriPool(), new InputFileRecordUriPool());
+        return new SlftpController(holder, new FileProcessUriQueuePool(), new InputFileRecordUriQueuePool());
     }
     @Bean
-    @Qualifier("inputPool")
-    public Pool<Packet> inputPacketPool(){
-        return new PacketPoolImpl();
+    @Qualifier("inputQueuePool")
+    public QueuePool<Packet> inputPacketPool(){
+        return new PacketQueuePoolImpl();
     }
 
     @Bean
     @Qualifier("outputPoll")
-    public Pool<Packet> outputPacketPool(){
-        return new PacketPoolImpl();
+    public QueuePool<Packet> outputPacketPool(){
+        return new PacketQueuePoolImpl();
     }
 
     @Bean
@@ -79,19 +76,9 @@ public class ClientConfig {
     }
 
     @Bean
-    public SocketIOWrapper socketIOWrapper(IdentificationHolderImpl identificationHolder){
-        SocketIOWrapper wrapper = new SocketIOWrapper(identificationHolder);
-        try{
-            Socket socket = new Socket(ip, port);
-            log.info("external socket id : " + socket.getInetAddress());
-            identificationHolder.setId(NodeIdBuilder.buildSocketIdClient(socket));
-            return new SocketIOWrapper(socket, identificationHolder);
-        }catch (IOException e){
-//            throw new RuntimeException("socket has been not initialized");
-        }
-        return wrapper;
+    public SocketIOWrapper socketIOWrapper(IdentificationHolder holder){
+        return new SocketIOWrapper(holder);
     }
-
 
     @Bean
     public CommandFactory commandFactory(SlftpController controller){

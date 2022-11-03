@@ -1,6 +1,6 @@
 package by.bsuir.instrumental.task.runner.impl;
 
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;
@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class AsyncTaskRunner implements TaskRunner {
-    private final Pool<Task> taskPool;
+    private final QueuePool<Task> taskQueuePool;
     @Getter
     @Setter
     private boolean isRunning = true;
@@ -27,7 +27,7 @@ public class AsyncTaskRunner implements TaskRunner {
     @Override
     public void run() {
         while (isRunning) {
-            Optional<Task> optional = taskPool.poll();
+            Optional<Task> optional = taskQueuePool.poll();
             if (optional.isPresent()) {
                 Task task = optional.get();
                 try {
@@ -35,7 +35,7 @@ public class AsyncTaskRunner implements TaskRunner {
                 }catch (RuntimeException e){
                     log.error(e.getMessage());
                 }
-                taskPool.offer(task);  //todo if false returns, some exceptional queue state was happen
+                taskQueuePool.offer(task);  //todo if false returns, some exceptional queue state was happen
             } else {
                 isRunning = false;
             }

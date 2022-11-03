@@ -1,6 +1,6 @@
 package by.bsuir.client.command.ui;
 
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -8,7 +8,7 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
-public class InputPool implements Pool<String> {
+public class InputQueuePool implements QueuePool<String> {
     private final Queue<String> inputQueue = new ConcurrentLinkedQueue();
     @Override
     public void offer(String obj) {

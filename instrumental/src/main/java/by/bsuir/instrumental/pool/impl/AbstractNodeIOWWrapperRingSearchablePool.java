@@ -1,13 +1,14 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
+import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.pool.SnapshottingPool;
 
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class AbstructNodeIOWrapperOtimazedPool implements SearchablePool<String, AbstractNodeIOWrapper>, SnapshottingPool {
+public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingPool<String, AbstractNodeIOWrapper>, SnapshottingPool {
     private static final int INIT_CAPACITY = 20;
     private final ArrayList<AbstractNodeIOWrapper> wrappers = new ArrayList<>(INIT_CAPACITY);
     private int placeholder = 0;
@@ -18,7 +19,7 @@ public class AbstructNodeIOWrapperOtimazedPool implements SearchablePool<String,
     }
 
     @Override
-    public Optional<AbstractNodeIOWrapper> poll() {
+    public Optional<AbstractNodeIOWrapper> getNext() {
         if(placeholder == wrappers.size()){
             placeholder = 0;
         }

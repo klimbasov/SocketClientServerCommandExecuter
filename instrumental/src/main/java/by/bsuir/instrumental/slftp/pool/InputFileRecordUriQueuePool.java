@@ -1,6 +1,6 @@
 package by.bsuir.instrumental.slftp.pool;
 
-import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.slftp.meta.InputFileRecord;
 
 import java.util.HashMap;
@@ -8,7 +8,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Optional;
 
-public class InputFileRecordUriPool implements SearchablePool<String, InputFileRecord> {
+public class InputFileRecordUriQueuePool implements SearchableQueuePool<String, InputFileRecord> {
     private final Map<String, InputFileRecord> stringInputFileRecordHashMap = new HashMap<>();
     private final LinkedList<InputFileRecord> inputFileRecords = new LinkedList<>();
     @Override

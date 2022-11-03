@@ -1,7 +1,7 @@
 package by.bsuir.instrumental.slftp;
 
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
-import by.bsuir.instrumental.pool.SearchablePool;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.slftp.meta.FileCopyProcess;
 import by.bsuir.instrumental.slftp.dto.FileMetaData;
 import by.bsuir.instrumental.slftp.dto.Portion;
@@ -10,7 +10,7 @@ import by.bsuir.instrumental.slftp.meta.InputFileRecord;
 import by.bsuir.instrumental.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
+import by.bsuir.instrumental.slftp.pool.FileProcessUriQueuePool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,8 +24,8 @@ import static java.util.Objects.nonNull;
 @Slf4j
 public class SlftpController {
     private final IdentificationHolder holder;
-    private final FileProcessUriPool processSearchablePool;
-    private final SearchablePool<String, InputFileRecord> inputFileRecordSearchablePool;
+    private final FileProcessUriQueuePool processSearchablePool;
+    private final SearchableQueuePool<String, InputFileRecord> inputFileRecordSearchablePool;
     private static final short MAX_DECLINED_TIME = 3;
     private static final int PORTION_SIZE = 1024;
     private final Queue<Packet> packetQueue = new LinkedList<>();

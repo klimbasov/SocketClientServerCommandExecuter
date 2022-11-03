@@ -6,11 +6,11 @@ import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.impl.*;
 import by.bsuir.instrumental.slftp.SlftpController;
-import by.bsuir.instrumental.slftp.pool.FileProcessUriPool;
-import by.bsuir.instrumental.slftp.pool.InputFileRecordUriPool;
+import by.bsuir.instrumental.slftp.pool.FileProcessUriQueuePool;
+import by.bsuir.instrumental.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
 import by.bsuir.instrumental.task.Task;
@@ -49,7 +49,7 @@ public class ServerConfig {
 
     @Bean
     public SlftpController controller(IdentificationHolder holder){
-        return new SlftpController(holder, new FileProcessUriPool(), new InputFileRecordUriPool());
+        return new SlftpController(holder, new FileProcessUriQueuePool(), new InputFileRecordUriQueuePool());
     }
 
     @Bean
@@ -64,8 +64,8 @@ public class ServerConfig {
     }
 
     @Bean
-    public Pool<Packet> inputPacketPool(){
-        return new PacketPoolImpl();
+    public QueuePool<Packet> inputPacketPool(){
+        return new PacketQueuePoolImpl();
     }
 
     @Bean
@@ -75,8 +75,8 @@ public class ServerConfig {
         return factory;
     }
     @Bean
-    public AbstructNodeIOWrapperOtimazedPool nodeIOWrapperPool(ServerIOWrapper wrapper, CommandFactoryImpl factory){
-        AbstructNodeIOWrapperOtimazedPool wrapperPool = new AbstructNodeIOWrapperOtimazedPool();
+    public AbstractNodeIOWWrapperRingSearchablePool nodeIOWrapperPool(ServerIOWrapper wrapper, CommandFactoryImpl factory){
+        AbstractNodeIOWWrapperRingSearchablePool wrapperPool = new AbstractNodeIOWWrapperRingSearchablePool();
         wrapperPool.offer(wrapper);
         factory.setWrapperPool(wrapperPool);
         return  wrapperPool;

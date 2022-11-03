@@ -3,15 +3,19 @@ package by.bsuir.instrumental.node;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
 
+@Slf4j
 public class SocketIOWrapper extends AbstractNodeIOWrapper implements DisposableBean {
     @Getter
     private Socket socket;
@@ -29,8 +33,9 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
         }
     }
 
-    public void setSocket(Socket socket){
+    public void setSocket(Socket socket) throws SocketException {
         this.socket = socket;
+        socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
         isClosed = socket.isClosed();
     }
 
@@ -91,7 +96,11 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     @Override
     public void close() throws Exception {
         if(socket != null){
+            boolean wasClosed = socket.isClosed();
             socket.close();
+            if(!wasClosed && socket.isClosed()){
+                log.info("wrapper " + getHolder().getIdentifier() + " was closed.");
+            }
         }
     }
 }

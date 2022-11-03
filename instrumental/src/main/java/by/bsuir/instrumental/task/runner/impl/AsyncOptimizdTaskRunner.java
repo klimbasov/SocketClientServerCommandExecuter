@@ -1,11 +1,14 @@
 package by.bsuir.instrumental.task.runner.impl;
 
+import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -25,8 +28,13 @@ public class AsyncOptimizdTaskRunner implements TaskRunner {
             isRunning = false;
         }
         while (isRunning) {
-            for (Task task: tasks){
-                task.run();
+
+            try {
+                for (Task task: tasks){
+                    task.run();
+                }
+            }catch (RuntimeException e){
+                log.error(e.getMessage());
             }
             try {
                 Thread.sleep(sleepTime);

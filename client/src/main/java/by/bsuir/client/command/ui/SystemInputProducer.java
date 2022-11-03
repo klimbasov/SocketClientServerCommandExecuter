@@ -10,7 +10,7 @@ import java.util.Scanner;
 @RequiredArgsConstructor
 public class SystemInputProducer implements Runnable, DisposableBean {
     private boolean isRunning = true;
-    private final InputPool inputPool;
+    private final InputQueuePool inputPool;
     private final Scanner scanner = new Scanner(System.in);
 
     @Override

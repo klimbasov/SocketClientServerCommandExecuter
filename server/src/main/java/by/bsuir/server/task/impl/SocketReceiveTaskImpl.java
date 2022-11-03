@@ -1,30 +1,26 @@
 package by.bsuir.server.task.impl;
 
-import by.bsuir.instrumental.node.SocketIOWrapper;
-import by.bsuir.instrumental.pool.Pool;
+import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
+import by.bsuir.instrumental.pool.RingPool;
+import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class SocketReceiveTaskImpl implements Task {
-    private final Pool<Packet> packetPool;
-    private final Pool<AbstractNodeIOWrapper> socketIOWrapperPool;
+    private final QueuePool<Packet> packetQueuePool;
+    private final SearchableRingPool<String, AbstractNodeIOWrapper> socketIOWrapperQueuePool;
     @Setter
     @Getter
     @Value("${custom.server.timing.receiveIterationsPerTaskExecution}")
@@ -32,17 +28,16 @@ public class SocketReceiveTaskImpl implements Task {
 
     @Override
     public void run() {
-        for (int counter = 0; counter < requestsPerCall && !socketIOWrapperPool.isEmpty(); counter++) {
-            Optional<AbstractNodeIOWrapper> optional = socketIOWrapperPool.poll();
+        for (int counter = 0; counter < requestsPerCall && !socketIOWrapperQueuePool.isEmpty(); counter++) {
+            Optional<AbstractNodeIOWrapper> optional = socketIOWrapperQueuePool.getNext();
             if (optional.isPresent()) {
                 AbstractNodeIOWrapper wrapper = optional.get();
                 wrapper.receive().ifPresent(obj -> {
-                    packetPool.offer(obj);
+                    packetQueuePool.offer(obj);
                     logReceive(obj);
                 });
-                if(wrapper.isAvailable()){
-                    socketIOWrapperPool.offer(wrapper);
-                }else {
+                if(!wrapper.isAvailable()){
+                    socketIOWrapperQueuePool.remove(wrapper.getHolder().getIdentifier());
                     log.info("socket " + wrapper.getHolder().getIdentifier() + " disconnected");
                     tryCloseSocket(wrapper);
                 }
@@ -59,6 +54,6 @@ public class SocketReceiveTaskImpl implements Task {
     }
 
     private static void logReceive(Packet obj) {
-        log.info("packet received:" + Arrays.toString(obj.getSourceId()) + " : " + Arrays.toString(obj.getTargetId()) + ", type " + obj.getType());
+        log.info("packet received:" + new String(obj.getSourceId()) + " : " + new String(obj.getTargetId()) + ", type " + obj.getType());
     }
 }
