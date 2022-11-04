@@ -11,7 +11,7 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Optional;
+import java.util.*;
 
 import static java.util.Objects.isNull;
 
@@ -23,19 +23,29 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     @Getter
     private boolean isClosed = false;
 
+    private ObjectOutputStream objectOutputStream;
+    private ByteArrayOutputStream byteArrayOutputStream;
+
+    private Queue<Packet> packetQueue;
+
     public SocketIOWrapper(Socket socket, IdentificationHolder holder) {
         super(holder);
+        packetQueue = new LinkedList<>();
+        byteArrayOutputStream = new ByteArrayOutputStream();
         try {
             this.socket = socket;
-            socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+//            socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void setSocket(Socket socket) throws SocketException {
+    public void setSocket(Socket socket) throws IOException {
         this.socket = socket;
-        socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
+        byteArrayOutputStream = new ByteArrayOutputStream();
+        objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+//        socket.setSoTimeout(DEFAULT_SO_TIMEOUT);
         isClosed = socket.isClosed();
     }
 
@@ -45,13 +55,25 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     }
 
     public Optional<Packet> receive() {
-        Packet request = null;
+        List<Packet> packets = new ArrayList<>(30);
+
         try {
-            ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-            request = (Packet) inputStream.readObject();
-            if (isNull(request)) {
-                isClosed = true;
+            InputStream inputStream = socket.getInputStream();
+            byte[] data = inputStream.readNBytes(inputStream.available());
+            byteArrayOutputStream.write(data);
+            try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
+                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)){
+                try {
+                    while(true){
+                        packets.add((Packet) objectInputStream.readObject());
+                    }
+                }catch (EOFException e){}
+                byteArrayInputStream.transferTo(byteArrayOutputStream);
             }
+
+//            if (isNull(request)) {
+//                isClosed = true;
+//            }
         }catch (SocketTimeoutException ignored){}
         catch (EOFException e){
             isClosed = true;
@@ -59,7 +81,7 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
         catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        return Optional.ofNullable(request);
+        return Optional.empty();
     }
 
 //    private Packet redirectToHost(Packet request) {
@@ -71,8 +93,8 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
 
     public void send(Packet response) {
         try {
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-            outputStream.writeObject(response);
+//            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectOutputStream.writeObject(response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -87,6 +109,8 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     public void destroy(){
         try {
             if(socket != null){
+                objectOutputStream.close();
+                byteArrayOutputStream.close();
                 socket.close();
             }
         } catch (IOException ignored) {
@@ -94,10 +118,24 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if(socket != null){
+            try {
+                objectOutputStream.close();
+            } catch (IOException e) {
+                log.error(e.getMessage());
+            }
+            try {
+                byteArrayOutputStream.close();
+            } catch (IOException e) {
+                log.error(e.getMessage());
+            }
             boolean wasClosed = socket.isClosed();
-            socket.close();
+            try {
+                socket.close();
+            } catch (IOException e) {
+                log.error(e.getMessage());
+            }
             if(!wasClosed && socket.isClosed()){
                 log.info("wrapper " + getHolder().getIdentifier() + " was closed.");
             }
