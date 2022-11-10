@@ -1,7 +1,6 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.pool.SnapshottingPool;
 
@@ -20,7 +19,7 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingP
 
     @Override
     public Optional<AbstractNodeIOWrapper> getNext() {
-        if(placeholder == wrappers.size()){
+        if(placeholder >= wrappers.size()){
             placeholder = 0;
         }
         return Optional.of(wrappers.get(placeholder++));
@@ -52,6 +51,7 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingP
 
     @Override
     public Optional<AbstractNodeIOWrapper> remove(String id) {
+        placeholder = 0;
         wrappers.remove(findById(id));
         return Optional.empty();
     }

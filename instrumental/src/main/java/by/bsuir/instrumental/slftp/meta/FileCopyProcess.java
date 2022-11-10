@@ -10,6 +10,7 @@ import java.io.*;
 @Accessors(chain = true)
 public class FileCopyProcess implements Closeable {
     long mils;
+    long lastTimeTransceive;
     FileMetaData metaData;
     short timesDeclined;
     long portion;

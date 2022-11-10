@@ -27,8 +27,11 @@ public class SlftpController {
     private final FileProcessUriQueuePool processSearchablePool;
     private final SearchableQueuePool<String, InputFileRecord> inputFileRecordSearchablePool;
     private static final short MAX_DECLINED_TIME = 3;
-    private static final int PORTION_SIZE = 1024;
+    private static final int PORTION_SIZE = 1024<<7;
     private final Queue<Packet> packetQueue = new LinkedList<>();
+
+    private static final int MAX_IDEL_TIME = 512;
+    private static int idelTime = 0;
 
     public void handleRequest(Packet packet){
         if(packet.getType() != PacketType.SLFTP_PACKAGE.typeId){
@@ -39,7 +42,7 @@ public class SlftpController {
             case PORTION -> handlePortion(packet);
             case PORTION_REQ -> handlePortionReq(packet);
             case ABORT -> handleAbort(packet);
-            case DECLINE -> hendleDecline(packet);
+            case DECLINE -> handleDecline(packet);
             case NOT_PASSED -> handleNotPassed(packet);
             default -> log.error("nothing great happened");
         }
@@ -51,7 +54,25 @@ public class SlftpController {
     }
 
     public Packet receive(){
-        return packetQueue.poll();
+        Packet packet = packetQueue.poll();
+        if(packet == null){
+            ++idelTime;
+        }else {
+            idelTime = 0;
+        }
+        if(idelTime >= MAX_IDEL_TIME){
+            Optional<FileCopyProcess> optional = processSearchablePool.poll();
+            if(optional.isPresent()){
+                FileCopyProcess copyProcess = optional.get();
+                copyProcess.setLastTimeTransceive(System.currentTimeMillis());
+                PortionRequest request = getPortionRequestFromCopy(copyProcess);
+                sendPacket(serializeBody(request), holder.getIdentifier().getBytes(), copyProcess.getMetaData().getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
+                processSearchablePool.offer(copyProcess);
+                packet = packetQueue.poll();
+                idelTime = 0;
+            }
+        }
+        return packet;
     }
 
     public void initCommunicationWithFileName(String uri, String destinationId){
@@ -59,7 +80,7 @@ public class SlftpController {
         optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING));
     }
 
-    private void hendleDecline(Packet packet) {
+    private void handleDecline(Packet packet) {
         PortionRequest request = deserializeBody(packet.getBody());
         Optional<FileCopyProcess> optional = processSearchablePool.find(request.getFileUri());
         if(optional.isPresent()){
@@ -105,19 +126,25 @@ public class SlftpController {
         Optional<FileCopyProcess> optional = processSearchablePool.find(portion.getFileUri());
         if(optional.isPresent()){
             FileCopyProcess copyProcess = optional.get();
+            addProccessMils(copyProcess);
             if(copyProcess.getPortion() == portion.getPortionNum()){
                 writePortionToFile(copyProcess, portion);
             }
             if(copyProcess.getPortion() == copyProcess.getPortionsQuantity()){
-                log.info("transferring " + copyProcess.getMetaData().getUrl() + " finished. Time consumed " + (System.currentTimeMillis() - copyProcess.getMils()));
+                log.info("transferring " + copyProcess.getMetaData().getUrl() + " finished. Bitrate " + ((double)copyProcess.getMetaData().getSize())/copyProcess.getMils()*8000 + " bits/sec");
                 sendPacket(serializeBody(copyProcess.getMetaData()), packet.getTargetId(), packet.getSourceId(), SlftpPacketType.ABORT);
                 processSearchablePool.remove(copyProcess.getMetaData().getUrl());
                 closeClosable(copyProcess);
             }else {
                 PortionRequest request = getPortionRequestFromCopy(copyProcess);
                 sendPacket(serializeBody(request), holder.getIdentifier().getBytes(), copyProcess.getMetaData().getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
+                copyProcess.setLastTimeTransceive(System.currentTimeMillis());
             }
         }
+    }
+
+    private static void addProccessMils(FileCopyProcess copyProcess) {
+        copyProcess.setMils( copyProcess.getMils() + (System.currentTimeMillis() - copyProcess.getLastTimeTransceive()));
     }
 
     private void sendPacket(byte[] packet, byte[] sourceId, byte[] targetId, SlftpPacketType decline) {
@@ -149,10 +176,11 @@ public class SlftpController {
             FileOutputStream outputStream = openOutputStream(metaData);
             BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(outputStream);
             copyProcess = new FileCopyProcess()
-                    .setMils(System.currentTimeMillis())
+                    .setMils(0)
                     .setMetaData(metaData)
                     .setPortion(0)
                     .setPortionsQuantity(portionsQuantity)
+                    .setLastTimeTransceive(System.currentTimeMillis())
                     .setStream(bufferedOutputStream);
             processSearchablePool.offer(copyProcess);
             PortionRequest request = getPortionRequestFromCopy(copyProcess);

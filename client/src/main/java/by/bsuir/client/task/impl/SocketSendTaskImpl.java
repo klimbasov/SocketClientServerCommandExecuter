@@ -35,16 +35,4 @@ public class SocketSendTaskImpl implements Task {
             }
         }
     }
-//    private void performSendingPackage(Packet packet) {
-//        try {
-//            socketIOWrapper.send(packet);
-//        } catch (RuntimeException e) {
-//            handleSendingFault(packet);
-//        }
-//    }
-//
-//    void handleSendingFault(Packet packet) {
-//        Packet responsePacket = new Packet(null, CLIENT_ID, packet.getSourceId(), PacketType.INFORM_PACKAGE.type, PacketFlags.ABORT.getFlagValue());
-//        packetPool.offer(responsePacket);
-//    }
 }
