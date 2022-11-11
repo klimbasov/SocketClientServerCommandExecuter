@@ -6,8 +6,6 @@ import by.bsuir.instrumental.pool.SnapshottingPool;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ShowCommandImpl extends AbstractCommand {
@@ -16,7 +14,8 @@ public class ShowCommandImpl extends AbstractCommand {
     private static final String[] FLAGS = new String[]{"client", "help"};
 
     private final Map<String, Supplier<String>> supplierMap = new HashMap<>();
-    public ShowCommandImpl(SnapshottingPool wrapperPool){
+
+    public ShowCommandImpl(SnapshottingPool wrapperPool) {
         super(FLAGS, new String[]{}, new HashMap<>(), new HashMap<>(), "show", new Class<?>[]{});
         supplierMap.put("help", () -> HELP_MSG);
         supplierMap.put("client", wrapperPool::snapshot);
@@ -31,7 +30,7 @@ public class ShowCommandImpl extends AbstractCommand {
                         commandComponent -> commandComponent.getType() == StructuredCommand.CommandComponent.CommandComponentType.OPTION_FULL
                 ).findFirst().orElseGet(this::createDefault).getValue();
         Supplier<String> supplier = supplierMap.get(supplierAlias);
-        if(supplier != null){
+        if (supplier != null) {
             retVal = supplier.get();
         }
         return retVal;

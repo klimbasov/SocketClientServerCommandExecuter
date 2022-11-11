@@ -4,7 +4,6 @@ import by.bsuir.instrumental.input.StructuredCommand;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -14,10 +13,10 @@ import static java.util.Objects.nonNull;
 
 @Component
 public class RawInputStructuredCommandAdapter {
-    private static final Pattern COMPONENTS_PATTERN = Pattern.compile("([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+(?=\\s|$))|((?<= -)[A-Za-z]+(?=\\s|$))|((?<= --)[A-Za-z]+(?=[ +]|$))|((?:\"[^\"]*\")*\"[\\sA-Za-z0-9\\/.]*[\\sA-Za-z0-9-_\\/]*\")|([A-Za-z0-9\\/.][A-Za-z0-9-_\\/]*)");
     public static final String COMMAND_DELIMITER = "\\\\";
+    private static final Pattern COMPONENTS_PATTERN = Pattern.compile("([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+(?=\\s|$))|((?<= -)[A-Za-z]+(?=\\s|$))|((?<= --)[A-Za-z]+(?=[ +]|$))|((?:\"[^\"]*\")*\"[\\sA-Za-z0-9\\/.]*[\\sA-Za-z0-9-_\\/]*\")|([A-Za-z0-9\\/.][A-Za-z0-9-_\\/]*)");
 
-    public List<StructuredCommand> toStructuredCommand(String input){
+    public List<StructuredCommand> toStructuredCommand(String input) {
         List<StructuredCommand> structuredCommandList = new LinkedList<>();
         String[] atomicCommandsArray = input.split(COMMAND_DELIMITER);
         for (String atomicCommand : atomicCommandsArray) {
@@ -53,21 +52,22 @@ public class RawInputStructuredCommandAdapter {
         return components;
     }
 
-    private List<StructuredCommand.CommandComponent> getComponents(List<StructuredCommand.CommandComponent> command){
+    private List<StructuredCommand.CommandComponent> getComponents(List<StructuredCommand.CommandComponent> command) {
         List<StructuredCommand.CommandComponent> components = new ArrayList<>();
-        if(command.size() >= 3){
+        if (command.size() >= 3) {
             components = new ArrayList<>(command.subList(2, command.size()));
         }
         return components;
     }
+
     private void validate(List<StructuredCommand.CommandComponent> components) {
-        if(components.isEmpty()||components.size()<2){
+        if (components.isEmpty() || components.size() < 2) {
             throw new RuntimeException("command dose not correct. At least ip and command identifier must be specified");
         }
         StructuredCommand.CommandComponent addressComponent = components.get(0);
         StructuredCommand.CommandComponent commandNameComponent = components.get(1);
-        if(addressComponent.getType() != StructuredCommand.CommandComponent.CommandComponentType.ADDRESS ||
-                commandNameComponent.getType() != StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT_OR_COMMAND){
+        if (addressComponent.getType() != StructuredCommand.CommandComponent.CommandComponentType.ADDRESS ||
+                commandNameComponent.getType() != StructuredCommand.CommandComponent.CommandComponentType.ARGUMENT_OR_COMMAND) {
             throw new RuntimeException("command is not correct. Ip or command identifier are invalid");
         }
     }

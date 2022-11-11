@@ -1,6 +1,6 @@
 package by.bsuir.client.task.impl;
 
-import by.bsuir.client.socket.impl.ClientIOWrapper;
+import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.task.Task;
@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ClientReceiveTaskImpl implements Task {
-    private final ClientIOWrapper wrapper;
+    private final EndNodeIOWrapper wrapper;
     private final QueuePool<Packet> packetQueuePool;
     @Setter
     @Getter
     @Value("${client.timing.receiveIterationsPerTaskExecution}")
     private int requestsPerCall;
 
-    public ClientReceiveTaskImpl(ClientIOWrapper wrapper, @Qualifier("outputPoll") QueuePool<Packet> packetQueuePool) {
+    public ClientReceiveTaskImpl(EndNodeIOWrapper wrapper, @Qualifier("outputPoll") QueuePool<Packet> packetQueuePool) {
         this.wrapper = wrapper;
         this.packetQueuePool = packetQueuePool;
     }

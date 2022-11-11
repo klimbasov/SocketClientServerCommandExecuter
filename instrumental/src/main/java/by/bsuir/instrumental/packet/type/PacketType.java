@@ -12,10 +12,10 @@ public enum PacketType {
 
     public final short typeId;
 
-    public static PacketType getInstance(short typeId){
+    public static PacketType getInstance(short typeId) {
         PacketType instance = null;
-        for (PacketType packetType : PacketType.values()){
-            if(packetType.typeId == typeId){
+        for (PacketType packetType : PacketType.values()) {
+            if (packetType.typeId == typeId) {
                 instance = packetType;
             }
         }

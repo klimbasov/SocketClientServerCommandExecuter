@@ -19,7 +19,7 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingP
 
     @Override
     public Optional<AbstractNodeIOWrapper> getNext() {
-        if(placeholder >= wrappers.size()){
+        if (placeholder >= wrappers.size()) {
             placeholder = 0;
         }
         return Optional.of(wrappers.get(placeholder++));
@@ -40,8 +40,8 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingP
     private AbstractNodeIOWrapper findById(String id) {
         AbstractNodeIOWrapper retVal = null;
         AbstractNodeIOWrapper[] innerArray = wrappers.toArray(new AbstractNodeIOWrapper[0]);
-        for (AbstractNodeIOWrapper wrapper: innerArray){
-            if(wrapper.getHolder().getIdentifier().equals(id)){
+        for (AbstractNodeIOWrapper wrapper : innerArray) {
+            if (wrapper.getHolder().getIdentifier().equals(id)) {
                 retVal = wrapper;
                 break;
             }

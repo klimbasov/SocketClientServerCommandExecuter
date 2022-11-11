@@ -9,7 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 @Component
 public class InputQueuePool implements QueuePool<String> {
-    private final Queue<String> inputQueue = new ConcurrentLinkedQueue();
+    private final Queue<String> inputQueue = new ConcurrentLinkedQueue<>();
+
     @Override
     public void offer(String obj) {
         inputQueue.offer(obj);

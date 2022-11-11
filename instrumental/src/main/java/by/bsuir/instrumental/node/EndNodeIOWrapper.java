@@ -33,7 +33,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     @Override
     public Optional<Packet> receive() {
         Optional<Packet> optional = Optional.ofNullable(packetQueue.poll());
-        if(optional.isEmpty()){
+        if (optional.isEmpty()) {
             optional = Optional.ofNullable(controller.receive());
         }
         return optional;
@@ -42,7 +42,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     @Override
     public void send(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
-        switch (type){
+        switch (type) {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);
             case INFORM_PACKAGE -> informPacketHandler(packet);
             case SLFTP_PACKAGE -> slftpPackageHandler(packet);
@@ -57,7 +57,10 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     public boolean isAvailable() {
         return true;
     }
-    private void informPacketHandler(Packet packet){System.out.println(new String(packet.getBody()));}
+
+    private void informPacketHandler(Packet packet) {
+        System.out.println(new String(packet.getBody()));
+    }
 
     private void commandPacketHandler(Packet packet) {
         List<StructuredCommand> structuredCommandList = processor.toStructuredCommand(List.of(packet));
@@ -75,7 +78,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
 
     }
 }

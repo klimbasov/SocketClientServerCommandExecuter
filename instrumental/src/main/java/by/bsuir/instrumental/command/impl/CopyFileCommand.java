@@ -1,62 +1,63 @@
 package by.bsuir.instrumental.command.impl;
 
 import by.bsuir.instrumental.command.AbstractCommand;
-import by.bsuir.instrumental.service.MetaDataRecord;
 import by.bsuir.instrumental.input.StructuredCommand;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.slftp.SlftpController;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static java.util.Map.entry;
 
 @Component
 public class CopyFileCommand extends AbstractCommand {
-    @Value("${command.copy.metadataFileLocation:'./'}")
-    private String METADATA_FILE_LOCATION;
-
     private static final String COMMAND_NAME = "copy";
     private static final Map<String, Class<?>> potions = Map.ofEntries(
             entry("source", String.class)
     );
     private static final Map<String, Class<?>> SHORTEN_OPTIONS = new HashMap<>();
     private static final Class<?>[] ARGUMENTS = new Class[]{String.class, String.class};
-
     private final SlftpController controller;
+    private final IdentificationHolder holder;
+
+    private static final String CAN_NOT_PROCESS_MSG = "request can not be processed. Invalid addresses were set";
 
 
-    public CopyFileCommand(SlftpController controller) {
+    public CopyFileCommand(SlftpController controller, IdentificationHolder holder) {
         super(new String[0], new String[0], potions, SHORTEN_OPTIONS, COMMAND_NAME, ARGUMENTS);
         this.controller = controller;
+        this.holder = holder;
     }
 
     @Override
     public String execute(StructuredCommand command) {
         String result = "transferring initiated";
-        if(command.getComponents().size()>=2){
-            String source = command.getComponents().get(0).getValue();
-            source = source.substring(1, source.length()-1);
-            String host = command.getComponents().get(1).getValue();
-            host = host.substring(1, host.length()-1);
-            Path path = Path.of(source);
-            if(Files.exists(path)){
-                result = "file " + source + " exists, starting transferring";
-                controller.initCommunicationWithFileName(source, host);
+        if (command.getComponents().size() >= 3) {
+            String url = parseStringArg(command, 0);
+            String source = parseStringArg(command, 1);
+            String destination = parseStringArg(command, 2);
+            Path path = Path.of(url);
+            if(source.equals(holder.getIdentifier())){
+                if (Files.exists(path)) {
+                    result = "file " + url + " exists, starting transferring";
+                    controller.initCommunicationWithFileName(url, destination);
+                }
+            }else if(destination.equals(holder.getIdentifier())){
+                controller.requestCommunication(url, source);
+            } else {
+                result = CAN_NOT_PROCESS_MSG;
             }
 
         }
         return result;
-
     }
 
-    void createMetadataRecord(){
-
+    private String parseStringArg(StructuredCommand command, int argNum) {
+        String arg = command.getComponents().get(argNum).getValue();
+        return arg.substring(1, arg.length() - 1);
     }
 }

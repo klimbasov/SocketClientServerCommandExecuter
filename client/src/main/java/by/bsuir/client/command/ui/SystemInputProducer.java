@@ -9,19 +9,19 @@ import java.util.Scanner;
 @Component
 @RequiredArgsConstructor
 public class SystemInputProducer implements Runnable, DisposableBean {
-    private boolean isRunning = true;
     private final InputQueuePool inputPool;
     private final Scanner scanner = new Scanner(System.in);
+    private boolean isRunning = true;
 
     @Override
     public void run() {
-        while (isRunning){
+        while (isRunning) {
             String input = scanner.nextLine();
             inputPool.offer(input);
         }
     }
 
-    public void stop(){
+    public void stop() {
         this.isRunning = false;
     }
 

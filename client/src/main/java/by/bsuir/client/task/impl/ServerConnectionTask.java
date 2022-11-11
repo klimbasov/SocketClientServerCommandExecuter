@@ -1,7 +1,6 @@
 package by.bsuir.client.task.impl;
 
 import by.bsuir.instrumental.node.SocketIOWrapper;
-import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
@@ -27,7 +26,7 @@ public class ServerConnectionTask implements Task {
 
     @Override
     public void run() {
-        if(!currentSocketIOWrapper.isAvailable()){
+        if (!currentSocketIOWrapper.isAvailable()) {
             try {
                 currentSocketIOWrapper.close();
             } catch (Exception e) {
@@ -36,9 +35,9 @@ public class ServerConnectionTask implements Task {
             try {
                 Socket socket = new Socket(ip, port);
                 holder.setId(NodeIdBuilder.buildSocketIdClient(socket));
-                log.info("external socket id : " + socket.getInetAddress());
+                log.info("external socket id : " + holder.getIdentifier());
                 currentSocketIOWrapper.setSocket(socket);
-            } catch (IOException e) {
+            } catch (IOException ignored) {
             }
         }
     }

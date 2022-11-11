@@ -23,14 +23,13 @@ public class SocketInputHandlerTask implements Task {
      * Pool of packets. Inputs from inputs pool will be transmitted to the packages
      */
     private final QueuePool<Packet> packetQueuePool;
+    private final RawInputStructuredCommandAdapter adapter;
+    private final StructuredCommandPacketMapper commandPacketMapper;
     /**
      * how many times inputPool will be queried to handle input
      */
     @Value("${client.timing.inputReadIterationsPerTaskExecution}")
     private int ITERATION_PER_CALL;
-
-    private final RawInputStructuredCommandAdapter adapter;
-    private final StructuredCommandPacketMapper commandPacketMapper;
 
     public SocketInputHandlerTask(
             InputQueuePool inputPool,
@@ -45,7 +44,7 @@ public class SocketInputHandlerTask implements Task {
 
     @Override
     public void run() {
-        for (int counter = 0; counter < ITERATION_PER_CALL; counter++){
+        for (int counter = 0; counter < ITERATION_PER_CALL; counter++) {
             inputPool.poll()
                     .ifPresent(s -> commandPacketMapper.toPackets(adapter.toStructuredCommand(s))
                             .forEach(packetQueuePool::offer));

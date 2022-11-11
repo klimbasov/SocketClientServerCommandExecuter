@@ -19,14 +19,14 @@ public class SocketReceiveTaskImpl implements Task {
     @Value("${client.timing.receiveIterationsPerTaskExecution}")
     private int requestsPerCall;
 
-    public SocketReceiveTaskImpl(SocketIOWrapper wrapper,@Qualifier("inputQueuePool") QueuePool<Packet> packetQueuePool) {
+    public SocketReceiveTaskImpl(SocketIOWrapper wrapper, @Qualifier("inputQueuePool") QueuePool<Packet> packetQueuePool) {
         this.wrapper = wrapper;
         this.packetQueuePool = packetQueuePool;
     }
 
     @Override
     public void run() {
-        if(wrapper.isAvailable()){
+        if (wrapper.isAvailable()) {
             for (int counter = 0; counter < requestsPerCall; counter++) {
                 wrapper.receive().ifPresent(packetQueuePool::offer);
             }

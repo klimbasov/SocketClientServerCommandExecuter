@@ -1,8 +1,6 @@
 package by.bsuir.instrumental.node.identification.impl;
 
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +30,7 @@ public class IdentificationHolderImpl implements IdentificationHolder {
     }
 
     @Override
-    public int compareTo(Object o) {
-        return 0;
+    public int compareTo(IdentificationHolder o) {
+        return id.compareTo(o.getIdentifier());
     }
 }

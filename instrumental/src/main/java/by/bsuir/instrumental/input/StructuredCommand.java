@@ -25,7 +25,7 @@ public class StructuredCommand implements Serializable {
         private CommandComponentType type;
 
         @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-        public enum CommandComponentType implements Serializable{
+        public enum CommandComponentType implements Serializable {
             ADDRESS,
             OPTION_SHORTEN,
             OPTION_FULL,
@@ -37,7 +37,7 @@ public class StructuredCommand implements Serializable {
                     case 1 -> ADDRESS;
                     case 2 -> OPTION_SHORTEN;
                     case 3 -> OPTION_FULL;
-                    case 4,5 -> ARGUMENT_OR_COMMAND;
+                    case 4, 5 -> ARGUMENT_OR_COMMAND;
                     default -> UNKNOWN;
                 };
             }

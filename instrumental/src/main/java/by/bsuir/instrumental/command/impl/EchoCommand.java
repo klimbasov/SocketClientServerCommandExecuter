@@ -4,7 +4,6 @@ import by.bsuir.instrumental.command.AbstractCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
 
 import java.util.HashMap;
-import java.util.Map;
 
 public class EchoCommand extends AbstractCommand {
 

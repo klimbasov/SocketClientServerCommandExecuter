@@ -1,14 +1,11 @@
 package by.bsuir.instrumental.task.runner.impl;
 
-import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.*;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -24,16 +21,16 @@ public class AsyncOptimizdTaskRunner implements TaskRunner {
 
     @Override
     public void run() {
-        if(tasks.length == 0){
+        if (tasks.length == 0) {
             isRunning = false;
         }
         while (isRunning) {
 
             try {
-                for (Task task: tasks){
+                for (Task task : tasks) {
                     task.run();
                 }
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 log.error(e.getMessage());
             }
             try {
@@ -46,7 +43,7 @@ public class AsyncOptimizdTaskRunner implements TaskRunner {
 
 
     @Override
-    public void destroy(){
+    public void destroy() {
         this.isRunning = false;
     }
 }

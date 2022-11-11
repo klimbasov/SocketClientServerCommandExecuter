@@ -11,6 +11,7 @@ import java.util.Optional;
 public class InputFileRecordUriQueuePool implements SearchableQueuePool<String, InputFileRecord> {
     private final Map<String, InputFileRecord> stringInputFileRecordHashMap = new HashMap<>();
     private final LinkedList<InputFileRecord> inputFileRecords = new LinkedList<>();
+
     @Override
     public void offer(InputFileRecord obj) {
         stringInputFileRecordHashMap.put(obj.getMetaData().getUrl(), obj);

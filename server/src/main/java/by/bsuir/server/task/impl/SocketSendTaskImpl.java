@@ -5,7 +5,6 @@ import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.pool.QueuePool;
-import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.task.Task;
@@ -38,9 +37,9 @@ public class SocketSendTaskImpl implements Task {
             optional.ifPresent(packet -> {
                 String id = new String(packet.getTargetId());
                 Optional<AbstractNodeIOWrapper> wrapperOptional = searchableSocketIOWrapperPool.find(id);
-                if(wrapperOptional.isPresent()){
+                if (wrapperOptional.isPresent()) {
                     handleSendingToNode(packet, id, wrapperOptional.get());
-                }else {
+                } else {
                     handleNotFoundResponse(packet);
                 }
             });
@@ -49,7 +48,7 @@ public class SocketSendTaskImpl implements Task {
 
     private void handleNotFoundResponse(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
-        Packet resultPacket = switch (type){
+        Packet resultPacket = switch (type) {
             case SLFTP_PACKAGE -> handleSlftpRollback(packet);
             default -> handleDefault(packet);
         };
@@ -57,7 +56,7 @@ public class SocketSendTaskImpl implements Task {
     }
 
     private Packet handleDefault(Packet packet) {
-        log.error("(def)not found host " + packet.getTargetId());
+        log.error("(def)not found host " + new String(packet.getTargetId()));
         return new Packet(
                 "no consumer found".getBytes(),
                 NodeIdBuilder.getServerId().getBytes(),
@@ -85,7 +84,7 @@ public class SocketSendTaskImpl implements Task {
     }
 
     private Packet handleSlftpRollback(Packet packet) {
-        log.error("(slftp)not found host " + packet.getTargetId());
+        log.error("(slftp)not found host " + new String(packet.getTargetId()));
         return new Packet(
                 packet.getBody(),
                 NodeIdBuilder.getServerId().getBytes(),

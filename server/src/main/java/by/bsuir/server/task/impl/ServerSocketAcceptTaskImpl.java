@@ -3,7 +3,6 @@ package by.bsuir.server.task.impl;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
-import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.RingPool;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
@@ -22,7 +21,7 @@ import java.net.SocketTimeoutException;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class  ServerSocketAcceptTaskImpl implements Task {
+public class ServerSocketAcceptTaskImpl implements Task {
     private final ServerSocket serverSocket;
     private final RingPool<AbstractNodeIOWrapper> socketIOWrapperQueuePool;
     @Setter

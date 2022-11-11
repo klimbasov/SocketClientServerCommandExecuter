@@ -11,18 +11,11 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 
-public class StructuredCommandPacketMapper implements DisposableBean
-{
+public class StructuredCommandPacketMapper implements DisposableBean {
     private final IdentificationHolder identificationHolder;
 
     public StructuredCommandPacketMapper(IdentificationHolder identificationHolder) {
         this.identificationHolder = identificationHolder;
-//        byteArrayOutputStream = new ByteArrayOutputStream();
-//        try {
-//            objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
     }
 
     public List<Packet> toPackets(List<StructuredCommand> structuredCommandList) {
@@ -43,20 +36,20 @@ public class StructuredCommandPacketMapper implements DisposableBean
     public List<StructuredCommand> toStructuredCommand(@NotNull List<Packet> input) {
         throwIfInvalidIdentifier();
         return input.stream()
-                .map(packet ->deserialize(packet.getBody()))
+                .map(packet -> deserialize(packet.getBody()))
                 .toList();
     }
 
     private void throwIfInvalidIdentifier() {
-        if(!identificationHolder.isIdentificationValid()){
+        if (!identificationHolder.isIdentificationValid()) {
             throw new RuntimeException("client has invalid identifier");
         }
     }
 
     private byte[] serialise(StructuredCommand command) {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-        ){
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)
+        ) {
             objectOutputStream.writeObject(command);
             return byteArrayOutputStream.toByteArray();
         } catch (IOException e) {
@@ -64,9 +57,9 @@ public class StructuredCommandPacketMapper implements DisposableBean
         }
     }
 
-    private StructuredCommand deserialize(byte[] serializedCommand){
+    private StructuredCommand deserialize(byte[] serializedCommand) {
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(serializedCommand);
-             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);){
+             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             return (StructuredCommand) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
@@ -75,7 +68,7 @@ public class StructuredCommandPacketMapper implements DisposableBean
     }
 
     @Override
-    public void destroy() throws Exception {
+    public void destroy() {
 //        objectOutputStream.close();
 //        byteArrayOutputStream.close();
     }

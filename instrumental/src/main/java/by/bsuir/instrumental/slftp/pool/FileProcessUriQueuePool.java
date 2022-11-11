@@ -3,11 +3,15 @@ package by.bsuir.instrumental.slftp.pool;
 import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.slftp.meta.FileCopyProcess;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Optional;
+import java.util.WeakHashMap;
 
 public class FileProcessUriQueuePool implements SearchableQueuePool<String, FileCopyProcess> {
     private final Map<String, FileCopyProcess> fileOutputStreamMap = new WeakHashMap<>();
     private final LinkedList<FileCopyProcess> fileCopyProcesses = new LinkedList<>();
+
     @Override
     public void offer(FileCopyProcess obj) {
         fileOutputStreamMap.put(obj.getMetaData().getUrl(), obj);

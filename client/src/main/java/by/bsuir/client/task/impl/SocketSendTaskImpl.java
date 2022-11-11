@@ -21,14 +21,14 @@ public class SocketSendTaskImpl implements Task {
     @Value("${client.timing.sendIterationsPerTaskExecution}")
     private int requestsPerCall;
 
-    public SocketSendTaskImpl(SocketIOWrapper socketIOWrapper,@Qualifier("outputPoll") QueuePool<Packet> packetQueuePool) {
+    public SocketSendTaskImpl(SocketIOWrapper socketIOWrapper, @Qualifier("outputPoll") QueuePool<Packet> packetQueuePool) {
         this.socketIOWrapper = socketIOWrapper;
         this.packetQueuePool = packetQueuePool;
     }
 
     @Override
     public void run() {
-        if(socketIOWrapper.isAvailable()){
+        if (socketIOWrapper.isAvailable()) {
             for (int counter = 0; counter < requestsPerCall && !packetQueuePool.isEmpty(); counter++) {
                 Optional<Packet> optional = packetQueuePool.poll();
                 optional.ifPresent(socketIOWrapper::send);

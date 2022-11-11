@@ -33,7 +33,7 @@ public class CommandFactoryImpl implements CommandFactory {
         return response;
     }
 
-    public void addCommand(String alias, Command command){
+    public void addCommand(String alias, Command command) {
         commandMap.put(alias, command);
     }
 
