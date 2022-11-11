@@ -8,6 +8,8 @@ import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.slftp.SlftpController;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
@@ -16,12 +18,15 @@ import java.util.Optional;
 import java.util.Queue;
 
 @Component
+@Slf4j
 public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     private final SlftpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
+    private static final int MAX_IDEL = 300;
+    private int idel = 0;
 
     public EndNodeIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, SlftpController controller) {
         super(holder);
@@ -32,6 +37,11 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     @Override
     public Optional<Packet> receive() {
+        ++idel;
+        if(idel >= MAX_IDEL){
+            log.warn("Node spend too much time in idel state. Take attention.");
+            idel = 0;
+        }
         Optional<Packet> optional = Optional.ofNullable(packetQueue.poll());
         if (optional.isEmpty()) {
             optional = Optional.ofNullable(controller.receive());
@@ -41,6 +51,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     @Override
     public void send(Packet packet) {
+        idel = 0;
         PacketType type = PacketType.getInstance(packet.getType());
         switch (type) {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);
