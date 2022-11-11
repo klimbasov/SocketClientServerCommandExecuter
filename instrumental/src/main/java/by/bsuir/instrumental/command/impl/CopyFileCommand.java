@@ -45,6 +45,8 @@ public class CopyFileCommand extends AbstractCommand {
                 if (Files.exists(path)) {
                     result = "file " + url + " exists, starting transferring";
                     controller.initCommunicationWithFileName(url, destination);
+                }else {
+                    result = "there is no such file";
                 }
             }else if(destination.equals(holder.getIdentifier())){
                 controller.requestCommunication(url, source);
