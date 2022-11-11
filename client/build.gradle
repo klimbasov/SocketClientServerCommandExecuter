@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '2.7.3'
+    id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 }
 
 group 'org.example'
@@ -8,16 +10,9 @@ version '1.0-SNAPSHOT'
 repositories {
     mavenCentral()
 }
-
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.24'
-// https://mvnrepository.com/artifact/org.hibernate/hibernate-validator
-    implementation 'org.hibernate:hibernate-validator:8.0.0.Final'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     implementation 'org.springframework.boot:spring-boot-starter:2.7.4'
     implementation project(':instrumental')
-}
-
-test {
-    useJUnitPlatform()
 }

@@ -14,6 +14,7 @@ import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.slftp.SlftpController;
 import by.bsuir.instrumental.slftp.pool.FileProcessUriQueuePool;
 import by.bsuir.instrumental.slftp.pool.InputFileRecordUriQueuePool;
+import by.bsuir.instrumental.state.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
@@ -31,6 +32,10 @@ public class ClientConfig {
     @Value("${client.timing.loopWaiting}")
     private int runnerTimeout;
 
+    @Bean
+    public StateHolder stateHolder(){
+        return new StateHolder().setRunning(true);
+    }
     @Bean
     public SlftpController controller(IdentificationHolder holder) {
         return new SlftpController(holder, new FileProcessUriQueuePool(), new InputFileRecordUriQueuePool());
@@ -79,8 +84,8 @@ public class ClientConfig {
     }
 
     @Bean(destroyMethod = "destroy")
-    public TaskRunner taskRunner(List<Task> tasks) {
-        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]));
+    public TaskRunner taskRunner(List<Task> tasks, StateHolder stateHolder) {
+        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]), stateHolder);
         runner.setSleepTime(runnerTimeout);
         return runner;
     }

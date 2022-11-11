@@ -1,5 +1,6 @@
 package by.bsuir.instrumental.task.runner.impl;
 
+import by.bsuir.instrumental.state.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;
@@ -11,9 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncOptimizdTaskRunner implements TaskRunner {
     private final Task[] tasks;
-    @Getter
-    @Setter
-    private boolean isRunning = true;
+    private final StateHolder stateHolder;
 
     @Getter
     @Setter
@@ -22,9 +21,9 @@ public class AsyncOptimizdTaskRunner implements TaskRunner {
     @Override
     public void run() {
         if (tasks.length == 0) {
-            isRunning = false;
+            stateHolder.setRunning(false);
         }
-        while (isRunning) {
+        while (stateHolder.isRunning()) {
 
             try {
                 for (Task task : tasks) {
@@ -44,6 +43,7 @@ public class AsyncOptimizdTaskRunner implements TaskRunner {
 
     @Override
     public void destroy() {
-        this.isRunning = false;
+        stateHolder.setRunning(false);
+        log.info(this.getClass().getName() + " finished execution.");
     }
 }
