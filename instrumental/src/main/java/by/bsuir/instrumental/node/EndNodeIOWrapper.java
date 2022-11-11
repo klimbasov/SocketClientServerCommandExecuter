@@ -25,7 +25,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
-    private static final int MAX_IDEL = 300;
+    private static final int MAX_IDEL = 900;
     private int idel = 0;
 
     public EndNodeIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, SlftpController controller) {
