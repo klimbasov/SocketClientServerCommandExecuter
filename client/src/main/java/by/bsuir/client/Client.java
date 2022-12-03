@@ -1,6 +1,6 @@
 package by.bsuir.client;
 
-import by.bsuir.client.command.ui.SystemInputProducer;
+import by.bsuir.instrumental.command.ui.SystemInputProducer;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

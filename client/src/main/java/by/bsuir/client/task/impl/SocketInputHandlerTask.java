@@ -1,7 +1,7 @@
 package by.bsuir.client.task.impl;
 
-import by.bsuir.client.command.ui.InputQueuePool;
-import by.bsuir.client.command.ui.RawInputStructuredCommandAdapter;
+import by.bsuir.instrumental.command.ui.InputQueuePool;
+import by.bsuir.instrumental.command.ui.RawInputStructuredCommandAdapter;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.QueuePool;

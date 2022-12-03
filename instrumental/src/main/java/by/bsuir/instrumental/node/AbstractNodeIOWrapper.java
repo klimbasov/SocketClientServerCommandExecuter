@@ -26,4 +26,8 @@ public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIO
         }
         return this.holder.compareTo(o.getHolder());
     }
+
+    public String getId(){
+        return holder.getIdentifier();
+    }
 }

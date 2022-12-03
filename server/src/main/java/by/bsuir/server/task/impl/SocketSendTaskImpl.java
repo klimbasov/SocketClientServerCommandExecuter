@@ -6,7 +6,7 @@ import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.SearchableRingPool;
-import by.bsuir.instrumental.slftp.packet.type.SlftpPacketType;
+import by.bsuir.instrumental.ftp.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.Getter;

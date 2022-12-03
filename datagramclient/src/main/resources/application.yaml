@@ -1,0 +1,11 @@
+client:
+  timing:
+    loopWaiting: 10
+    soTimeout: 15
+    receive: 5
+    input: 1
+custom:
+  server:
+    address: 0.0.0.0
+    port: 8081
+    hostname: server

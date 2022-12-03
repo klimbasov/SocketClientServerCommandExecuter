@@ -1,0 +1,8 @@
+custom:
+  server:
+    connectivity:
+      port: 8081
+      so_timeout: 15
+    timing:
+      loopWaiting: 10
+      receive: 5

@@ -8,7 +8,8 @@ public enum PacketType {
     COMMAND_PACKAGE((short) 2),
     INFORM_PACKAGE((short) 3),
     CONFIGURE_PACKAGE((short) 4),
-    SLFTP_PACKAGE((short) 5);
+    SLFTP_PACKAGE((short) 5),
+    TFTP_PACKAGE((short) 6);
 
     public final short typeId;
 

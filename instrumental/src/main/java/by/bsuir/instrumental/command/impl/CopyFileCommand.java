@@ -3,7 +3,7 @@ package by.bsuir.instrumental.command.impl;
 import by.bsuir.instrumental.command.AbstractCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
-import by.bsuir.instrumental.slftp.SlftpController;
+import by.bsuir.instrumental.ftp.slftp.SlftpController;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;

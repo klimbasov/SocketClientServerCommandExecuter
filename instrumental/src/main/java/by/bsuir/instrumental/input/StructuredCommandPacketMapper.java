@@ -4,7 +4,6 @@ import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.DisposableBean;
 
 import java.io.*;
@@ -33,7 +32,7 @@ public class StructuredCommandPacketMapper implements DisposableBean {
         return packets;
     }
 
-    public List<StructuredCommand> toStructuredCommand(@NotNull List<Packet> input) {
+    public List<StructuredCommand> toStructuredCommand(List<Packet> input) {
         throwIfInvalidIdentifier();
         return input.stream()
                 .map(packet -> deserialize(packet.getBody()))

@@ -7,8 +7,7 @@ import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.slftp.SlftpController;
-import lombok.Setter;
+import by.bsuir.instrumental.ftp.slftp.SlftpController;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
