@@ -1,36 +1,44 @@
+
 package by.bsuir.instrumental.ftp.tftp.pool;
 
+import by.bsuir.instrumental.ftp.tftp.file.input.FileInputStructure;
 import by.bsuir.instrumental.pool.SearchableQueuePool;
-import by.bsuir.instrumental.ftp.tftp.file.output.FileOutputStructure;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Optional;
 
-public class FileInputPool implements SearchableQueuePool<String, FileOutputStructure> {
-    private final HashMap<String, FileOutputStructure> stringFileOutputStructureHashMap = new HashMap<>();
+public class FileInputPool implements SearchableQueuePool<String, FileInputStructure> {
+    private final HashMap<String, FileInputStructure> stringFileInputStructureHashMap = new HashMap<>();
+    private final LinkedList<FileInputStructure> fileInputStructureLinkedList = new LinkedList<>();
 
     @Override
-    public void offer(FileOutputStructure obj) {
-        stringFileOutputStructureHashMap.put(obj.getId(), obj);
+    public void offer(FileInputStructure obj) {
+        stringFileInputStructureHashMap.put(obj.getId(), obj);
+        fileInputStructureLinkedList.offer(obj);
     }
 
     @Override
-    public Optional<FileOutputStructure> poll() {
-        return Optional.empty();
+    public Optional<FileInputStructure> poll() {
+        Optional<FileInputStructure> optional = Optional.ofNullable(fileInputStructureLinkedList.poll());
+        optional.ifPresent(fileInputStructureLinkedList::offer);
+        return optional;
     }
 
     @Override
     public boolean isEmpty() {
-        return stringFileOutputStructureHashMap.isEmpty();
+        return stringFileInputStructureHashMap.isEmpty();
     }
 
     @Override
-    public Optional<FileOutputStructure> find(String id) {
-        return Optional.of(stringFileOutputStructureHashMap.get(id));
+    public Optional<FileInputStructure> find(String id) {
+        return Optional.ofNullable(stringFileInputStructureHashMap.get(id));
     }
 
     @Override
-    public Optional<FileOutputStructure> remove(String id) {
-        return Optional.of(stringFileOutputStructureHashMap.remove(id));
+    public Optional<FileInputStructure> remove(String id) {
+        Optional<FileInputStructure> optional = Optional.ofNullable(stringFileInputStructureHashMap.remove(id));
+        optional.ifPresent(fileInputStructureLinkedList::remove);
+        return optional;
     }
 }

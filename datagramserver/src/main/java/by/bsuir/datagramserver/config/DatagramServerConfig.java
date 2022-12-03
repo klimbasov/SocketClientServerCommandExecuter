@@ -3,15 +3,16 @@ package by.bsuir.datagramserver.config;
 import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.command.factory.impl.CommandFactoryImpl;
 import by.bsuir.instrumental.command.impl.CopyFileCommand;
+import by.bsuir.instrumental.ftp.FtpController;
+import by.bsuir.instrumental.ftp.tftp.TftpController;
+import by.bsuir.instrumental.ftp.tftp.pool.FileInputPool;
+import by.bsuir.instrumental.ftp.tftp.pool.FileOutputPool;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.node.UdpSocketIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.pool.UuidAddressTable;
-import by.bsuir.instrumental.ftp.slftp.SlftpController;
-import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
-import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.state.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
@@ -47,8 +48,8 @@ public class DatagramServerConfig {
     }
 
     @Bean
-    public SlftpController controller(IdentificationHolder holder) {
-        return new SlftpController(holder, new FileProcessUriQueuePool(), new InputFileRecordUriQueuePool());
+    public FtpController controller(IdentificationHolder holder) {
+        return new TftpController(holder, new FileOutputPool(), new FileInputPool());
     }
 
     @Bean
@@ -59,7 +60,7 @@ public class DatagramServerConfig {
     }
 
     @Bean
-    public CommandFactoryImpl commandFactory(SlftpController controller, IdentificationHolder holder) {
+    public CommandFactoryImpl commandFactory(FtpController controller, IdentificationHolder holder) {
         CommandFactoryImpl factory = new CommandFactoryImpl();
         factory.addCommand("copy", new CopyFileCommand(controller, holder));
         return factory;
@@ -69,12 +70,12 @@ public class DatagramServerConfig {
     public EndNodeIOWrapper endNodeIOWrapper(IdentificationHolder holder,
                                              StructuredCommandPacketMapper mapper,
                                              CommandFactory factory,
-                                             SlftpController slftpController) {
+                                             FtpController slftpController) {
         return new EndNodeIOWrapper(holder, mapper, factory, slftpController);
     }
 
     @Bean
-    public UuidAddressTable addressTable() throws UnknownHostException {
+    public UuidAddressTable addressTable() {
         return new UuidAddressTable();
     }
 

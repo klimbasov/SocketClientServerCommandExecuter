@@ -14,9 +14,6 @@ import static java.util.Objects.nonNull;
 
 @Slf4j
 public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
-    private static final byte[] OBJECT_STREAM_HEADER = new byte[]{-84, -19, 0, 5};
-    private static final int OBJECT_STREAM_HEADER_LENGTH = 4;
-    private static final int DEFAULT_SO_TIMEOUT = 50;
     private static final Packet FAULT_ADDRESS_NOT_FOUND_PACKET = new Packet("no root found for request".getBytes(), "".getBytes(),
             "".getBytes(), PacketType.INFORM_PACKAGE.typeId, PacketFlags.ACK.flagValue);
     private static final int DATAGRAM_PACKET_SIZE = 1024 << 2;
@@ -35,15 +32,12 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
 
     @Override
     public Optional<Packet> receive() {
-        byte[] data = new byte[DATAGRAM_PACKET_SIZE];
-        DatagramPacket datagramPacket = new DatagramPacket(data, DATAGRAM_PACKET_SIZE);
-        Optional<Packet> optional = Optional.empty();
+        Optional<Packet> optional;
         if(callbackQueue.isEmpty()){
-            optional = receiveFromSocket(datagramPacket, optional);
+            optional = receiveFromSocket();
         }else {
             optional = Optional.of(callbackQueue.poll());
         }
-
 
         return optional;
     }
@@ -74,7 +68,10 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
         }
     }
 
-    private Optional<Packet> receiveFromSocket(DatagramPacket datagramPacket, Optional<Packet> optional) {
+    private Optional<Packet> receiveFromSocket() {
+        byte[] data = new byte[DATAGRAM_PACKET_SIZE];
+        DatagramPacket datagramPacket = new DatagramPacket(data, DATAGRAM_PACKET_SIZE);
+        Optional<Packet> optional = Optional.empty();
         try {
             socket.receive(datagramPacket);
             try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
@@ -117,5 +114,6 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
     public void setSocket(DatagramSocket socket) {
         this.socket = socket;
         this.isClosed = socket.isClosed();
+        log.info("UDP socket was set: " + socket.getInetAddress() + ':' + socket.getPort());
     }
 }

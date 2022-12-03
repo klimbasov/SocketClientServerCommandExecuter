@@ -1,9 +1,9 @@
 package by.bsuir.instrumental.command.impl;
 
 import by.bsuir.instrumental.command.AbstractCommand;
+import by.bsuir.instrumental.ftp.FtpController;
 import by.bsuir.instrumental.input.StructuredCommand;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
-import by.bsuir.instrumental.ftp.slftp.SlftpController;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Files;
@@ -21,13 +21,13 @@ public class CopyFileCommand extends AbstractCommand {
     );
     private static final Map<String, Class<?>> SHORTEN_OPTIONS = new HashMap<>();
     private static final Class<?>[] ARGUMENTS = new Class[]{String.class, String.class};
-    private final SlftpController controller;
+    private final FtpController controller;
     private final IdentificationHolder holder;
 
     private static final String CAN_NOT_PROCESS_MSG = "request can not be processed. Invalid addresses were set";
 
 
-    public CopyFileCommand(SlftpController controller, IdentificationHolder holder) {
+    public CopyFileCommand(FtpController controller, IdentificationHolder holder) {
         super(new String[0], new String[0], potions, SHORTEN_OPTIONS, COMMAND_NAME, ARGUMENTS);
         this.controller = controller;
         this.holder = holder;
@@ -44,12 +44,12 @@ public class CopyFileCommand extends AbstractCommand {
             if(source.equals(holder.getIdentifier())){
                 if (Files.exists(path)) {
                     result = "file " + url + " exists, starting transferring";
-                    controller.initCommunicationWithFileName(url, destination);
+                    controller.upload(url, destination);
                 }else {
                     result = "there is no such file";
                 }
             }else if(destination.equals(holder.getIdentifier())){
-                controller.requestCommunication(url, source);
+                controller.download(url, source);
             } else {
                 result = CAN_NOT_PROCESS_MSG;
             }
