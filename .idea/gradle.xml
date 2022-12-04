@@ -10,7 +10,10 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/client" />
+            <option value="$PROJECT_DIR$/client/datagramserver" />
             <option value="$PROJECT_DIR$/command" />
+            <option value="$PROJECT_DIR$/datagramclient" />
+            <option value="$PROJECT_DIR$/datagramserver" />
             <option value="$PROJECT_DIR$/instrumental" />
             <option value="$PROJECT_DIR$/server" />
           </set>

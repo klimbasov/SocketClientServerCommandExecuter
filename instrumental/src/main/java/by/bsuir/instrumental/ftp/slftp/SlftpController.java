@@ -37,7 +37,6 @@ public class SlftpController implements FtpController {
 
     @Override
     public List<Packet> receive() {
-        List<Packet> packets = new ArrayList<>(packetQueue.size());
         if (packetQueue.isEmpty()) {
             ++idleTime;
         } else {
@@ -46,8 +45,8 @@ public class SlftpController implements FtpController {
         if (idleTime >= MAX_IDLE_TIME) {
             restoreExistingProcess();
         }
-        Collections.copy(packets, packetQueue);
-
+        List<Packet> packets = new ArrayList<>(packetQueue);
+        packetQueue.clear();
         return packets;
     }
 

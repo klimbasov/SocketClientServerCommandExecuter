@@ -6,11 +6,11 @@ public class NodeIdBuilder {
     private static final String SERVER_ID = "0.0.0.0";
 
     public static String buildSocketIdClient(Socket socket) {
-        return socket.getLocalAddress().toString().substring(1);
+        return socket.getLocalSocketAddress().toString().substring(1).replace(':', '.');
     }
 
     public static String buildSocketIdServer(Socket socket) {
-        return socket.getInetAddress().toString().substring(1);
+        return socket.getRemoteSocketAddress().toString().substring(1).replace(':', '.');
     }
 
     public static String getServerId() {

@@ -44,6 +44,7 @@ public class TftpController implements FtpController {
 
     private static final String DOWNLOAD_DIRECTORY_PATH = "./downloads";
 
+    @Override
     public List<Packet> receive() {
         if (packetQueue.isEmpty()) {
             ++idleTime;
@@ -58,6 +59,7 @@ public class TftpController implements FtpController {
         return packets;
     }
 
+    @Override
     public void send(Packet packet) {
         if (packet.getType() != PacketType.FTP_PACKAGE.typeId) {
             throw new RuntimeException("tftp controller got non tftp packet");

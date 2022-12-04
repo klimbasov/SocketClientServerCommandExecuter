@@ -49,7 +49,7 @@ public class SocketSendTaskImpl implements Task {
     private void handleNotFoundResponse(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
         Packet resultPacket = switch (type) {
-            case SLFTP_PACKAGE -> handleSlftpRollback(packet);
+            case FTP_PACKAGE -> handleSlftpRollback(packet);
             default -> handleDefault(packet);
         };
         packetQueuePool.offer(resultPacket);
@@ -89,7 +89,7 @@ public class SocketSendTaskImpl implements Task {
                 packet.getBody(),
                 NodeIdBuilder.getServerId().getBytes(),
                 packet.getSourceId(),
-                PacketType.SLFTP_PACKAGE.typeId,
+                PacketType.FTP_PACKAGE.typeId,
                 SlftpPacketType.NOT_PASSED.typeId);
     }
 }

@@ -12,6 +12,7 @@
           <option value="javax.*" />
           <option value="org.springframework.*" />
           <option value="lombok.Value" />
+          <option value="lombok.Data" />
         </list>
       </option>
     </inspection_tool>
