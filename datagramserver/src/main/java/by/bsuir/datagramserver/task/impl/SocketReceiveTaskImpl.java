@@ -22,8 +22,8 @@ public class SocketReceiveTaskImpl implements Task {
     @Override
     public void run() {
         for (int counter = 0; counter < requestsPerCall && socketIOWrapper.isAvailable(); counter++) {
-            nodeIOWrapper.receive().ifPresent(socketIOWrapper::send);
-            socketIOWrapper.receive().ifPresent(nodeIOWrapper::send);
+            socketIOWrapper.send(nodeIOWrapper.receive());
+            nodeIOWrapper.send(socketIOWrapper.receive());
         }
     }
 }

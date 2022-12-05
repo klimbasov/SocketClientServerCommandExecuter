@@ -5,4 +5,4 @@ custom:
       so_timeout: 15
     timing:
       loopWaiting: 10
-      receive: 5
+      receive: 1

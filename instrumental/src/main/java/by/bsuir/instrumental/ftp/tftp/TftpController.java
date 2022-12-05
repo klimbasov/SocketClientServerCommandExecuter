@@ -25,17 +25,14 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
-import static by.bsuir.instrumental.ftp.util.file.FileBlockIOUtil.getBlockAmount;
-import static by.bsuir.instrumental.ftp.util.file.FileBlockIOUtil.getMetadataByFilePath;
+import static by.bsuir.instrumental.ftp.util.file.FileBlockIOUtil.*;
 import static by.bsuir.instrumental.ftp.util.serialization.BodySerializer.deserializeBody;
 import static by.bsuir.instrumental.ftp.util.serialization.BodySerializer.serializeBody;
 
 @Slf4j
 @RequiredArgsConstructor
-public class TftpController implements FtpController {
-    private static final int PORTION_SIZE = 1024 << 1;
+public class TftpController implements FtpController{
     private static final int MAX_IDLE_TIME = 512;
-    private static final int MAX_BLOCK_SIZE = 128;
     private static int idleTime = 0;
     private final IdentificationHolder holder;
     private final SearchableQueuePool<String, FileOutputStructure> stringFileOutputStructureSearchableQueuePool;
@@ -44,7 +41,6 @@ public class TftpController implements FtpController {
 
     private static final String DOWNLOAD_DIRECTORY_PATH = "./downloads";
 
-    @Override
     public List<Packet> receive() {
         if (packetQueue.isEmpty()) {
             ++idleTime;
@@ -59,7 +55,6 @@ public class TftpController implements FtpController {
         return packets;
     }
 
-    @Override
     public void send(Packet packet) {
         if (packet.getType() != PacketType.FTP_PACKAGE.typeId) {
             throw new RuntimeException("tftp controller got non tftp packet");
@@ -107,6 +102,7 @@ public class TftpController implements FtpController {
         String id = generateId(metaData);
         FileOutputStructure outputStructure = new FileOutputStructure(id, metaData, path, blockAmount, portionAmount);
         stringFileOutputStructureSearchableQueuePool.offer(outputStructure);
+        outputStructure.incNack();
         NackStructure nackStructure = new NackStructure(metaData, outputStructure.getBlockTable());
         sendPacket(serializeBody(nackStructure), packet.getTargetId(), packet.getSourceId(), TftpPacketType.NACK);//todo testing is stopped on adding nack after metadata
     }
@@ -124,6 +120,7 @@ public class TftpController implements FtpController {
         if(optional.isPresent()){
             createDownloadDirIfNotExist();
             FileInputStructure fileInputStructure = optional.get();
+            fileInputStructure.incNack();
             if(fileInputStructure.getBlockNum() != requestedBlockNum){// todo full inconsistency with unordered requests
                 fileInputStructure.nextBlock();
             }// todo potentially unused section
@@ -139,8 +136,10 @@ public class TftpController implements FtpController {
                     }
                 }
             }
+            portionsForSend.forEach(portion -> fileInputStructure.incPortionsSent());
             portionsForSend.forEach(portion -> sendPacket(serializeBody(portion), packet.getTargetId(), packet.getSourceId(), TftpPacketType.PORTION));
         }else {
+            log.warn("No file proccesing");
             AbortStructure abortStructure = new AbortStructure(requestedFileMetadata, "0", "No such file processing");
             sendPacket(serializeBody(abortStructure), packet.getTargetId(), packet.getSourceId(), TftpPacketType.ABORT);
         }
@@ -188,8 +187,8 @@ public class TftpController implements FtpController {
         Optional<FileOutputStructure> optional = stringFileOutputStructureSearchableQueuePool.find(portion.getId());
         if (optional.isPresent()) {
             FileOutputStructure fileOutputStructure = optional.get();
+            fileOutputStructure.incPortionsRes();
             if(portion.getBlockNum() == fileOutputStructure.getBlockNum()){
-                String path = fileOutputStructure.getPath();
                 BlockTable blockTable = fileOutputStructure.getBlockTable();
                 byte[] blockTableContent = blockTable.getTable();
                 List<Portion> block = fileOutputStructure.getPortions();
@@ -197,7 +196,7 @@ public class TftpController implements FtpController {
                 int blockElementIndex = (portion.getPortionNum() >> 3);
                 byte blockElementOffset = (byte) (0b1 << (portion.getPortionNum() & 0x7));
                 if((blockTableContent[blockElementIndex] & (blockElementOffset)) != 0){
-                    block.add(portion.getPortionNum(), portion);
+                    block.set(portion.getPortionNum(), portion);
                     blockTableContent[blockElementIndex] = (byte) (blockTableContent[blockElementIndex] & (~blockElementOffset));
                 }
                 if(blockTable.isComplete()){
@@ -206,14 +205,21 @@ public class TftpController implements FtpController {
                     if(fileOutputStructure.isComplete()){
                         stringFileOutputStructureSearchableQueuePool.remove(fileOutputStructure.getId());
                         log.info("file " + fileOutputStructure.getPath() + " had been transmitted");
+                        log.info("nack received " + fileOutputStructure.getNacksSent() + " instead of ideal " + 1);
+                        log.info("ack received " + fileOutputStructure.getAcksSent() + " instead of ideal " + fileOutputStructure.getBlockAmount());
+                        log.info("Portions received " + fileOutputStructure.getPortionsReceived() + " instead of ideal " + fileOutputStructure.getPortionAmount());
                         log.info("Transition rate: " + (fileOutputStructure.getMetadata().getSize() * 8 * 1000) / (System.currentTimeMillis() - fileOutputStructure.getStartMils()) + " bit/s");
                     }
-                    FileBlockIOUtil.writeBlock(path, block);
+                    fileOutputStructure.incAck();
                     AckStructure ackStructure = new AckStructure(fileOutputStructure.getMetadata(), blockNum);
                     sendPacket(serializeBody(ackStructure), holder.getIdentifier().getBytes(), packet.getSourceId(), TftpPacketType.ACK);
                     log.info("block " + blockNum + " had been saved");
                 }
+            }else {
+                log.warn("inconsistent block num");
             }
+        }else{
+            log.warn("portion declined");
         }
     }
 
@@ -224,11 +230,15 @@ public class TftpController implements FtpController {
     }
 
     private void nextTransition(Packet packet, AckStructure ackStructure, FileInputStructure fileInputStructure) {
+        fileInputStructure.incAck();
         long ackBlockNum = ackStructure.getBlockNum();
         if(fileInputStructure.getBlockNum() == ackStructure.getBlockNum()){
             if(fileInputStructure.getBlockAmount() <= ackBlockNum + 1){
                 stringFileInputStructureSearchableQueuePool.remove(fileInputStructure.getId());
                 log.info(fileInputStructure.getMetadata().getUrl() + " fully transmitted to " + fileInputStructure.getMetadata().getHostId());
+                log.info("nack received " + fileInputStructure.getNacksReceived() + " instead of ideal " + 1);
+                log.info("ack received " + fileInputStructure.getAcksReceived() + " instead of ideal " + fileInputStructure.getBlockAmount());
+                log.info("Portions received " + fileInputStructure.getPortionsSent() + " instead of ideal ?");
             }else {
                 fileInputStructure.nextBlock();
                 fileInputStructure.getBlock().forEach(portion -> sendPacket(serializeBody(portion), holder.getIdentifier().getBytes(), packet.getSourceId(), TftpPacketType.PORTION));
@@ -242,13 +252,14 @@ public class TftpController implements FtpController {
     }
 
     private static String generateInputFilePath(FileMetaData metaData){
-        return DOWNLOAD_DIRECTORY_PATH + "/"+ getFileName(metaData.getUrl());
+        return DOWNLOAD_DIRECTORY_PATH + "/" + getFileName(metaData.getUrl());
     }
 
     private void restoreExistingProcess() {
         Optional<FileOutputStructure> optional = stringFileOutputStructureSearchableQueuePool.poll();
         if (optional.isPresent()) {
             FileOutputStructure fileOutputStructure = optional.get();
+            fileOutputStructure.incNack();
             NackStructure nackStructure = new NackStructure(fileOutputStructure.getMetadata(), fileOutputStructure.getBlockTable());
             sendPacket(serializeBody(nackStructure), holder.getIdentifier().getBytes(), fileOutputStructure.getMetadata().getHostId().getBytes(), TftpPacketType.NACK);
             idleTime = 0;
@@ -270,6 +281,22 @@ public class TftpController implements FtpController {
             if(directory.mkdirs()){
                 throw new RuntimeException("can not create download directory");
             }
+        }
+    }
+
+    @Override
+    public void close() {
+        while (!stringFileOutputStructureSearchableQueuePool.isEmpty()){
+            stringFileOutputStructureSearchableQueuePool.poll().ifPresent(structure -> {
+                stringFileOutputStructureSearchableQueuePool.remove(structure.getId());
+                structure.close();
+            });
+        }
+        while (!stringFileInputStructureSearchableQueuePool.isEmpty()){
+            stringFileInputStructureSearchableQueuePool.poll().ifPresent(structure -> {
+                stringFileOutputStructureSearchableQueuePool.remove(structure.getId());
+                structure.close();
+            });
         }
     }
 }

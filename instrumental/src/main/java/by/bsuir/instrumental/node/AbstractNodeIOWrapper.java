@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -13,9 +14,9 @@ public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIO
     @Getter
     private final IdentificationHolder holder;
 
-    public abstract Optional<Packet> receive();
+    public abstract List<Packet> receive();
 
-    public abstract void send(Packet response) throws IOException;
+    public abstract void send(List<Packet> response) throws IOException;
 
     public abstract boolean isAvailable();
 

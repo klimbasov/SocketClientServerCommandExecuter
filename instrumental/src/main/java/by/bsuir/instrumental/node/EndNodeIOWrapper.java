@@ -11,10 +11,7 @@ import by.bsuir.instrumental.packet.type.PacketType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -35,7 +32,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     }
 
     @Override
-    public Optional<Packet> receive() {
+    public List<Packet> receive() {
         ++idel;
         if(idel >= MAX_IDEL){
             log.warn("Node spend too much time in idel state. Take attention.");
@@ -44,22 +41,26 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
         if (packetQueue.isEmpty()) {
             packetQueue.addAll(controller.receive());
         }
-        Optional<Packet> optional = Optional.ofNullable(packetQueue.poll());
-        if(optional.isPresent()){
+        if(!packetQueue.isEmpty()){
             idel = 0;
         }
-        return optional;
+        List<Packet> packets = new ArrayList<>(packetQueue);
+        packetQueue.clear();
+        return packets;
     }
 
     @Override
-    public void send(Packet packet) {
+    public void send(List<Packet> packets) {
         idel = 0;
+        packets.forEach(this::packetHandler);
+    }
+
+    private void packetHandler(Packet packet){
         PacketType type = PacketType.getInstance(packet.getType());
         switch (type) {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);
             case INFORM_PACKAGE -> informPacketHandler(packet);
             case FTP_PACKAGE -> slftpPackageHandler(packet);
-
         }
     }
 
@@ -93,6 +94,6 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     @Override
     public void close() {
-
+        controller.close();
     }
 }

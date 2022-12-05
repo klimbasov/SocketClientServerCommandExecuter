@@ -19,6 +19,7 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
     private static final int DATAGRAM_PACKET_SIZE = 1024 << 2;
     private DatagramSocket socket;
     private final Queue<Packet> callbackQueue;
+    private final Queue<Packet> packetQueue;
     private final UuidAddressTable addressTable;
 
     private boolean isClosed;
@@ -26,28 +27,35 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
     public UdpSocketIOWrapper(UuidAddressTable addressTable) {
         super(null);
         this.callbackQueue = new LinkedList<>();
+        this.packetQueue = new LinkedList<>();
         this.addressTable = addressTable;
         this.isClosed = true;
     }
 
     @Override
-    public Optional<Packet> receive() {
-        Optional<Packet> optional;
+    public List<Packet> receive() {
+        List<Packet> packets;
         if(callbackQueue.isEmpty()){
-            optional = receiveFromSocket();
+            receiveFromSocket();
+            packets = new ArrayList<>(packetQueue);
+            packetQueue.clear();
         }else {
-            optional = Optional.of(callbackQueue.poll());
+            packets = new ArrayList<>(callbackQueue);
+            callbackQueue.clear();
         }
-
-        return optional;
+        return packets;
     }
 
     @Override
-    public void send(Packet response) {
-        String uuid = new String(response.getTargetId());
+    public void send(List<Packet> packets) {
+        packets.forEach(this::sendPacketHandler);
+    }
+
+    private void sendPacketHandler(Packet packet){
+        String uuid = new String(packet.getTargetId());
         SocketAddress address = addressTable.get(uuid);
         if(nonNull(address)){
-            sendToSocket(response, address);
+            sendToSocket(packet, address);
         }else {
             callbackQueue.add(FAULT_ADDRESS_NOT_FOUND_PACKET);
         }
@@ -68,30 +76,29 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
         }
     }
 
-    private Optional<Packet> receiveFromSocket() {
+    private void receiveFromSocket() {
         byte[] data = new byte[DATAGRAM_PACKET_SIZE];
         DatagramPacket datagramPacket = new DatagramPacket(data, DATAGRAM_PACKET_SIZE);
-        Optional<Packet> optional = Optional.empty();
         try {
-            socket.receive(datagramPacket);
-            try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
-                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)){
-                Packet packet = (Packet) objectInputStream.readObject();
-                optional = Optional.of(packet);
-                String source = new String(packet.getSourceId());
-                SocketAddress address = datagramPacket.getSocketAddress();
-                if(!address.equals(addressTable.get(source))){
-                    addressTable.put(source, address);
+            while (true){
+                socket.receive(datagramPacket);
+                try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
+                    ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)){
+                    Packet packet = (Packet) objectInputStream.readObject();
+                    packetQueue.offer(packet);
+                    String source = new String(packet.getSourceId());
+                    SocketAddress address = datagramPacket.getSocketAddress();
+                    if(!address.equals(addressTable.get(source))){
+                        addressTable.put(source, address);
+                    }
+                } catch (ClassNotFoundException e) {
+                    log.warn("received packet was corrupted");
                 }
-            } catch (ClassNotFoundException e) {
-                log.warn("received packet was corrupted");
             }
-
         }catch (SocketTimeoutException ignored){}
         catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return optional;
     }
 
     @Override

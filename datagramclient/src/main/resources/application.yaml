@@ -1,8 +1,8 @@
 client:
   timing:
     loopWaiting: 10
-    soTimeout: 15
-    receive: 5
+    soTimeout: 7
+    receive: 1
     input: 1
 custom:
   server:

@@ -323,4 +323,9 @@ public class SlftpController implements FtpController {
         }
 
     }
+
+    @Override
+    public void close() {
+
+    }
 }

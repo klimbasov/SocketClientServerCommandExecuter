@@ -1,5 +1,6 @@
 package by.bsuir.instrumental.node;
 
+import by.bsuir.instrumental.ftp.slftp.dto.Portion;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import lombok.Getter;
@@ -66,17 +67,18 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
         isClosed = socket.isClosed();
     }
 
-    public Optional<Packet> receive() {
+    @Override
+    public List<Packet> receive() {
         if (packetQueue.isEmpty()) {
             handleRead();
         }
-        return Optional.ofNullable(packetQueue.poll());
+        List<Packet> packets = new ArrayList<>(packetQueue);
+        packetQueue.clear();
+        return packets;
     }
 
     private void handleRead() {
-        List<Packet> packets = new ArrayList<>(30) {
-        };
-
+        List<Packet> packets = new ArrayList<>(30);
         try {
             InputStream inputStream = socket.getInputStream();
             int availableBytes = inputStream.available();
@@ -138,10 +140,15 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
         return packets;
     }
 
-    public void send(Packet response) {
+    @Override
+    public void send(List<Packet> packets) {
+        packets.forEach(this::packetSendHandler);
+    }
+
+    private void packetSendHandler(Packet packet){
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
-            objectOutputStream.writeObject(response);
+            objectOutputStream.writeObject(packet);
             byte[] bytes = byteArrayOutputStream.toByteArray();
             socket.getOutputStream().write(bytes);
         } catch (IOException e) {

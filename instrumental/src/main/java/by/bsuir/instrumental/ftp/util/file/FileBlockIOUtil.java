@@ -3,6 +3,8 @@ package by.bsuir.instrumental.ftp.util.file;
 import by.bsuir.instrumental.ftp.slftp.dto.FileMetaData;
 import by.bsuir.instrumental.ftp.tftp.file.block.table.BlockTable;
 import by.bsuir.instrumental.ftp.tftp.file.block.table.portion.Portion;
+import by.bsuir.instrumental.ftp.tftp.file.input.FileInputStructure;
+import by.bsuir.instrumental.ftp.tftp.file.output.FileOutputStructure;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -11,20 +13,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class FileBlockIOUtil {
-    private static final int PORTION_SIZE = 1024 << 1;
-    private static final int MAX_BLOCK_SIZE = 128;
+    public static final int PORTION_SIZE = 1024 << 1;
+    public static final int MAX_BLOCK_SIZE = 64;
 
-    private static final int BLOCK_SIZE_IN_BYTES = PORTION_SIZE * MAX_BLOCK_SIZE;
+    public static final int BLOCK_SIZE_IN_BYTES = PORTION_SIZE * MAX_BLOCK_SIZE;
+    private static final int BUFFER_SIZE = 1024 << 4;
 
-    public static List<Portion> readBlock(String path, String fileId, long blockNum){
-        long offset = blockNum * MAX_BLOCK_SIZE * PORTION_SIZE;
-        File file = new File(path);
+    public static List<Portion> readBlock(FileInputStructure structure){
+        long blockNum = structure.getBlockNum();
+        String fileId = structure.getId();
         List<Portion> block;
-        throwIf(!file.exists(), "Requested file does not exist");
-        throwIf(offset > file.length(), "Offset length has bigger value than file length");
-        try(FileInputStream fis = new FileInputStream(file)){
-            fis.getChannel().position(offset);
-            byte[] data = fis.readNBytes(BLOCK_SIZE_IN_BYTES);
+        BufferedInputStream inputStream = structure.getBis();
+        try{
+            byte[] data = inputStream.readNBytes(BLOCK_SIZE_IN_BYTES);
             block = rawDataToBlock(data, fileId, blockNum);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -32,20 +33,12 @@ public class FileBlockIOUtil {
         return block;
     }
 
-    public static void writeBlock(String path, List<Portion> block) {
-        File file = new File(path);
-        if(!file.exists()){
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+    public static void writeBlock(FileOutputStructure structure) {
+        try{
+            for (Portion portion : structure.getPortions()) {
+                structure.getBos().write(portion.getContent());
             }
-        }
-        try(FileOutputStream fos = new FileOutputStream(file, true)){
-            for (Portion portion : block) {
-                fos.write(portion.getContent());
-            }
-        } catch (IOException e) {
+        }catch (IOException e){
             throw new RuntimeException(e);
         }
     }
@@ -127,6 +120,34 @@ public class FileBlockIOUtil {
         try {
             file.createNewFile();
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static BufferedOutputStream getOStream(String path) {
+        File file = new File(path);
+        if(!file.exists()){
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            return new BufferedOutputStream(new FileOutputStream(file, true), BUFFER_SIZE);//todo implement fertilisation for files
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static BufferedInputStream getIStream(String path) {
+        File file = new File(path);
+        if(!file.exists()){
+            throw new RuntimeException("No such file exist");
+        }
+        try {
+            return new BufferedInputStream(new FileInputStream(file), BUFFER_SIZE);//todo implement fertilisation for files
+        } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

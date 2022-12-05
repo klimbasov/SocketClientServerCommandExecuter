@@ -2,6 +2,7 @@ package by.bsuir.datagramclient.task.impl;
 
 import by.bsuir.instrumental.command.ui.InputQueuePool;
 import by.bsuir.instrumental.command.ui.RawInputStructuredCommandAdapter;
+import by.bsuir.instrumental.input.StructuredCommand;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.UdpSocketIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
@@ -10,6 +11,8 @@ import by.bsuir.instrumental.task.Task;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Map user Input to command packets
@@ -46,9 +49,9 @@ public class SocketInputHandlerTask implements Task {
     @Override
     public void run() {
         for (int counter = 0; counter < ITERATION_PER_CALL; counter++) {
-            inputPool.poll()
-                    .ifPresent(s -> commandPacketMapper.toPackets(adapter.toStructuredCommand(s))
-                            .forEach(wrapper::send));
+            List<StructuredCommand> structuredCommands = inputPool.pollAll().stream().map(adapter::toStructuredCommand).flatMap(List::stream).toList();
+            List<Packet> packets = commandPacketMapper.toPackets(structuredCommands);
+            wrapper.send(packets);
         }
     }
 }
