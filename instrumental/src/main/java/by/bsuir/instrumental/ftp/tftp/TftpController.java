@@ -10,6 +10,7 @@ import by.bsuir.instrumental.ftp.tftp.file.decline.DeclineStructure;
 import by.bsuir.instrumental.ftp.tftp.file.input.FileInputStructure;
 import by.bsuir.instrumental.ftp.tftp.file.output.FileOutputStructure;
 import by.bsuir.instrumental.ftp.tftp.packet.type.TftpPacketType;
+import by.bsuir.instrumental.ftp.tftp.pool.FileOutputPool;
 import by.bsuir.instrumental.ftp.util.file.FileBlockIOUtil;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
@@ -33,9 +34,8 @@ import static by.bsuir.instrumental.ftp.util.serialization.BodySerializer.serial
 @RequiredArgsConstructor
 public class TftpController implements FtpController{
     private static final int MAX_IDLE_TIME = 512;
-    private static int idleTime = 0;
     private final IdentificationHolder holder;
-    private final SearchableQueuePool<String, FileOutputStructure> stringFileOutputStructureSearchableQueuePool;
+    private final FileOutputPool stringFileOutputStructureSearchableQueuePool;
     private final SearchableQueuePool<String, FileInputStructure> stringFileInputStructureSearchableQueuePool;
     private final LinkedList<Packet> packetQueue = new LinkedList<>();
 
@@ -43,11 +43,6 @@ public class TftpController implements FtpController{
 
     public List<Packet> receive() {
         if (packetQueue.isEmpty()) {
-            ++idleTime;
-        } else {
-            idleTime = 0;
-        }
-        if (idleTime >= MAX_IDLE_TIME) {
             restoreExistingProcess();
         }
         List<Packet> packets = new ArrayList<>(packetQueue);
@@ -189,6 +184,7 @@ public class TftpController implements FtpController{
             FileOutputStructure fileOutputStructure = optional.get();
             fileOutputStructure.incPortionsRes();
             if(portion.getBlockNum() == fileOutputStructure.getBlockNum()){
+                fileOutputStructure.dropNackCounter();
                 BlockTable blockTable = fileOutputStructure.getBlockTable();
                 byte[] blockTableContent = blockTable.getTable();
                 List<Portion> block = fileOutputStructure.getPortions();
@@ -231,9 +227,8 @@ public class TftpController implements FtpController{
 
     private void nextTransition(Packet packet, AckStructure ackStructure, FileInputStructure fileInputStructure) {
         fileInputStructure.incAck();
-        long ackBlockNum = ackStructure.getBlockNum();
         if(fileInputStructure.getBlockNum() == ackStructure.getBlockNum()){
-            if(fileInputStructure.getBlockAmount() <= ackBlockNum + 1){
+            if(fileInputStructure.isComplete()){
                 stringFileInputStructureSearchableQueuePool.remove(fileInputStructure.getId());
                 log.info(fileInputStructure.getMetadata().getUrl() + " fully transmitted to " + fileInputStructure.getMetadata().getHostId());
                 log.info("nack received " + fileInputStructure.getNacksReceived() + " instead of ideal " + 1);
@@ -244,6 +239,8 @@ public class TftpController implements FtpController{
                 fileInputStructure.getBlock().forEach(portion -> sendPacket(serializeBody(portion), holder.getIdentifier().getBytes(), packet.getSourceId(), TftpPacketType.PORTION));
                 log.info("block " + fileInputStructure.getBlockNum() + " had been sent");
             }
+        }else{
+            log.warn("unordered nack was got");
         }
     }
 
@@ -256,14 +253,12 @@ public class TftpController implements FtpController{
     }
 
     private void restoreExistingProcess() {
-        Optional<FileOutputStructure> optional = stringFileOutputStructureSearchableQueuePool.poll();
-        if (optional.isPresent()) {
-            FileOutputStructure fileOutputStructure = optional.get();
-            fileOutputStructure.incNack();
-            NackStructure nackStructure = new NackStructure(fileOutputStructure.getMetadata(), fileOutputStructure.getBlockTable());
-            sendPacket(serializeBody(nackStructure), holder.getIdentifier().getBytes(), fileOutputStructure.getMetadata().getHostId().getBytes(), TftpPacketType.NACK);
-            idleTime = 0;
-        }
+        stringFileOutputStructureSearchableQueuePool.getAllDelayed().forEach(this::sendNackForOutputStructure);
+    }
+
+    private void sendNackForOutputStructure(FileOutputStructure structure){
+        NackStructure nackStructure = new NackStructure(structure.getMetadata(), structure.getBlockTable());
+        sendPacket(serializeBody(nackStructure), holder.getIdentifier().getBytes(), structure.getMetadata().getHostId().getBytes(), TftpPacketType.NACK);
     }
 
     private void sendPacket(byte[] body, byte[] sourceId, byte[] targetId, TftpPacketType decline) {

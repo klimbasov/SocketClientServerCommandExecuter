@@ -5,6 +5,7 @@ import by.bsuir.instrumental.ftp.tftp.file.output.FileOutputStructure;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 public class FileOutputPool implements SearchableQueuePool<String, FileOutputStructure> {
@@ -41,5 +42,9 @@ public class FileOutputPool implements SearchableQueuePool<String, FileOutputStr
         Optional<FileOutputStructure> optional = Optional.ofNullable(stringFileOutputStructureHashMap.remove(id));
         optional.ifPresent(fileOutputStructureLinkedList::remove);
         return optional;
+    }
+
+    public List<FileOutputStructure> getAllDelayed(){
+        return fileOutputStructureLinkedList.stream().filter(FileOutputStructure::isNackNeeded).toList();
     }
 }
