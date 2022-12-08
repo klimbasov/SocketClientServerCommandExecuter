@@ -1,4 +1,5 @@
 client:
+  hostname: "laptop1"
   timing:
     loopWaiting: 10
     soTimeout: 15

@@ -42,6 +42,9 @@ public class DatagramClientConfig {
     @Value("${custom.server.port}")
     private int serverPort;
 
+    @Value("${client.hostname}")
+    private String clientHostname;
+
 
     @Bean
     public StateHolder stateHolder(){
@@ -76,7 +79,7 @@ public class DatagramClientConfig {
     @Bean
     public IdentificationHolderImpl identificationHolder() {
         IdentificationHolderImpl holder = new IdentificationHolderImpl();
-        holder.setId("123412123412");
+        holder.setId(clientHostname);
         return holder;
     }
 
