@@ -28,7 +28,7 @@ public class SocketReceiveTaskImpl implements Task {
     public void run() {
         if (wrapper.isAvailable()) {
             for (int counter = 0; counter < requestsPerCall; counter++) {
-                wrapper.receive().ifPresent(packetQueuePool::offer);
+                wrapper.receive().forEach(packetQueuePool::offer);
             }
         }
     }

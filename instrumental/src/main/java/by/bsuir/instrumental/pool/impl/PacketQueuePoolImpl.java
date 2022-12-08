@@ -6,12 +6,12 @@ import by.bsuir.instrumental.pool.QueuePool;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
-import java.util.Queue;
 
 @Component
 public class PacketQueuePoolImpl implements QueuePool<Packet> {
-    private final Queue<Packet> packetQueue = new LinkedList<>();
+    private final LinkedList<Packet> packetQueue = new LinkedList<>();
 
     @Override
     public void offer(Packet packet) {
@@ -26,5 +26,11 @@ public class PacketQueuePoolImpl implements QueuePool<Packet> {
     @Override
     public boolean isEmpty() {
         return packetQueue.isEmpty();
+    }
+
+    public List<Packet> pollAll(){
+        List<Packet> packets = new LinkedList<>(packetQueue);
+        packetQueue.clear();
+        return packets;
     }
 }

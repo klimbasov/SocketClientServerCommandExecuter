@@ -1,8 +1,7 @@
 package by.bsuir.client.task.impl;
 
 import by.bsuir.instrumental.node.EndNodeIOWrapper;
-import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.pool.QueuePool;
+import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,18 +9,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
 @Component
 public class ClientSendTaskImpl implements Task {
     private final EndNodeIOWrapper wrapper;
-    private final QueuePool<Packet> packetQueuePool;
+    private final PacketQueuePoolImpl packetQueuePool;
     @Setter
     @Getter
     @Value("${client.timing.sendIterationsPerTaskExecution}")
     private int requestsPerCall;
 
-    public ClientSendTaskImpl(EndNodeIOWrapper wrapper, @Qualifier("inputQueuePool") QueuePool<Packet> packetQueuePool) {
+    public ClientSendTaskImpl(EndNodeIOWrapper wrapper, @Qualifier("inputQueuePool") PacketQueuePoolImpl packetQueuePool) {
         this.wrapper = wrapper;
         this.packetQueuePool = packetQueuePool;
     }
@@ -29,8 +26,7 @@ public class ClientSendTaskImpl implements Task {
     @Override
     public void run() {
         for (int counter = 0; counter < requestsPerCall && !packetQueuePool.isEmpty(); counter++) {
-            Optional<Packet> optional = packetQueuePool.poll();
-            optional.ifPresent(wrapper::send);
+            wrapper.send(packetQueuePool.pollAll());
         }
     }
 }

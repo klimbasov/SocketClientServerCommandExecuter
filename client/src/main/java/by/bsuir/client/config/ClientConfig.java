@@ -11,8 +11,6 @@ import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
-import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.ftp.slftp.SlftpController;
 import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
@@ -46,13 +44,13 @@ public class ClientConfig {
 
     @Bean
     @Qualifier("inputQueuePool")
-    public QueuePool<Packet> inputPacketPool() {
+    public PacketQueuePoolImpl inputPacketPool() {
         return new PacketQueuePoolImpl();
     }
 
     @Bean
     @Qualifier("outputPoll")
-    public QueuePool<Packet> outputPacketPool() {
+    public PacketQueuePoolImpl outputPacketPool() {
         return new PacketQueuePoolImpl();
     }
 

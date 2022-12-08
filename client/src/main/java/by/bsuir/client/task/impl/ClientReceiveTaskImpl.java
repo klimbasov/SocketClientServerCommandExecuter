@@ -27,7 +27,7 @@ public class ClientReceiveTaskImpl implements Task {
     @Override
     public void run() {
         for (int counter = 0; counter < requestsPerCall; counter++) {
-            wrapper.receive().ifPresent(packetQueuePool::offer);
+            wrapper.receive().forEach(packetQueuePool::offer);
         }
     }
 }

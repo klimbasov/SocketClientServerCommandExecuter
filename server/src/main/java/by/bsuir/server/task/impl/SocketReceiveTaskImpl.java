@@ -43,7 +43,7 @@ public class SocketReceiveTaskImpl implements Task {
             Optional<AbstractNodeIOWrapper> optional = socketIOWrapperQueuePool.getNext();
             if (optional.isPresent()) {
                 AbstractNodeIOWrapper wrapper = optional.get();
-                wrapper.receive().ifPresent(obj -> {
+                wrapper.receive().forEach(obj -> {
                     packetQueuePool.offer(obj);
                     logReceive(obj);
                 });
