@@ -96,6 +96,7 @@ public class FileOutputStructure implements Closeable {
 
     public void dropNackCounter(){
         nackCounter = 0;
+        lastDelayMils = System.currentTimeMillis();
     }
 
     @Override
