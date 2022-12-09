@@ -56,7 +56,7 @@ public class FileInputStructure implements Closeable {
     }
 
     public boolean isComplete(){
-        return blockNum >= blockAmount;
+        return blockNum >= blockAmount - 1;
     }
 
     public void incNack(){

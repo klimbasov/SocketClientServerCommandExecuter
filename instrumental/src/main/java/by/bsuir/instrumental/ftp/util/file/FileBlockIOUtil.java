@@ -14,10 +14,10 @@ import java.util.Optional;
 
 public class FileBlockIOUtil {
     public static final int PORTION_SIZE = 1024 << 1;
-    public static final int MAX_BLOCK_SIZE = 2 << 7;//64
+    public static final int MAX_BLOCK_SIZE = 2 << 6;//64
 
     public static final int BLOCK_SIZE_IN_BYTES = PORTION_SIZE * MAX_BLOCK_SIZE;
-    private static final int BUFFER_SIZE = 1024 << 4;
+    private static final int BUFFER_SIZE = 1024 << 6;
 
     public static List<Portion> readBlock(FileInputStructure structure){
         long blockNum = structure.getBlockNum();
