@@ -1,9 +1,8 @@
 package by.bsuir.client.task.impl;
 
 import by.bsuir.instrumental.node.SocketIOWrapper;
-import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.task.Task;
-import by.bsuir.instrumental.util.NodeIdBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +15,7 @@ import java.net.Socket;
 @RequiredArgsConstructor
 @Slf4j
 public class ServerConnectionTask implements Task {
-    private final IdentificationHolderImpl holder;
+    private final IdentificationHolder holder;
     private final SocketIOWrapper currentSocketIOWrapper;
 
     @Value("${client.connectivity.ip}")
@@ -34,7 +33,6 @@ public class ServerConnectionTask implements Task {
             }
             try {
                 Socket socket = new Socket(ip, port);
-                holder.setId(NodeIdBuilder.buildSocketIdClient(socket));
                 log.info("external socket id : " + holder.getIdentifier());
                 currentSocketIOWrapper.setSocket(socket);
             } catch (IOException ignored) {

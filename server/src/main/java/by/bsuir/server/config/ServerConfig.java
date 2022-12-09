@@ -94,7 +94,8 @@ public class ServerConfig {
     @Bean
     public AbstractNodeIOWWrapperRingSearchablePool nodeIOWrapperPool(EndNodeIOWrapper wrapper, CommandFactoryImpl factory) {
         AbstractNodeIOWWrapperRingSearchablePool wrapperPool = new AbstractNodeIOWWrapperRingSearchablePool();
-        wrapperPool.offer(wrapper);
+        wrapperPool.offerUnnamed(wrapper);
+        wrapperPool.setName("0.0.0.0", wrapper);
         factory.setWrapperPool(wrapperPool);
         return wrapperPool;
     }

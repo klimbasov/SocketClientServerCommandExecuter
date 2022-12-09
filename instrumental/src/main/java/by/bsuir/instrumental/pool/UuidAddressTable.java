@@ -26,4 +26,8 @@ public class UuidAddressTable {
     public void put(String uuid, SocketAddress address){
         addressTable.put(uuid, address);
     }
+
+    public boolean contains(String uuid){
+        return addressTable.containsKey(uuid);
+    }
 }

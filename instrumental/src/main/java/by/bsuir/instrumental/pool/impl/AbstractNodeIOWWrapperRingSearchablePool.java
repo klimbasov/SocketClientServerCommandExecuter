@@ -1,59 +1,59 @@
 package by.bsuir.instrumental.pool.impl;
 
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
-import by.bsuir.instrumental.pool.SearchableRingPool;
-import by.bsuir.instrumental.pool.SnapshottingPool;
+import by.bsuir.instrumental.pool.Snapshot;
 
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 
-public class AbstractNodeIOWWrapperRingSearchablePool implements SearchableRingPool<String, AbstractNodeIOWrapper>, SnapshottingPool {
+public class AbstractNodeIOWWrapperRingSearchablePool implements Snapshot {
     private static final int INIT_CAPACITY = 20;
     private final ArrayList<AbstractNodeIOWrapper> wrappers = new ArrayList<>(INIT_CAPACITY);
-    private int placeholder = 0;
+    private final HashMap<String, AbstractNodeIOWrapper> stringAbstractNodeIOWrapperHashMap = new HashMap<>();
+    private int placeholderNamed = 0;
 
-    @Override
-    public void offer(AbstractNodeIOWrapper obj) {
+    public void offerUnnamed(AbstractNodeIOWrapper obj) {
         wrappers.add(obj);
     }
 
-    @Override
     public Optional<AbstractNodeIOWrapper> getNext() {
-        if (placeholder >= wrappers.size()) {
-            placeholder = 0;
+        if (placeholderNamed >= wrappers.size()) {
+            placeholderNamed = 0;
         }
-        return Optional.of(wrappers.get(placeholder++));
+        return Optional.of(wrappers.get(placeholderNamed++));
     }
 
-    @Override
     public boolean isEmpty() {
         return wrappers.isEmpty();
     }
 
-    @Override
-    public Optional<AbstractNodeIOWrapper> find(String id) {
-        Optional<AbstractNodeIOWrapper> optional;
-        optional = Optional.ofNullable(findById(id));
+    public long size() {
+        return wrappers.size();
+    }
+
+    public Optional<AbstractNodeIOWrapper> remove(AbstractNodeIOWrapper wrapper){
+        List<String> removedNames = new LinkedList<>();
+        for (Map.Entry<String, AbstractNodeIOWrapper> entry : stringAbstractNodeIOWrapperHashMap.entrySet()){
+            if(entry.getValue().equals(wrapper)){
+                removedNames.add(entry.getKey());
+            }
+        }
+        removedNames.forEach(stringAbstractNodeIOWrapperHashMap::remove);
+        Optional<AbstractNodeIOWrapper> optional = Optional.empty();
+        if(wrappers.remove(wrapper)){
+            optional = Optional.of(wrapper);
+        }
         return optional;
     }
 
-    private AbstractNodeIOWrapper findById(String id) {
-        AbstractNodeIOWrapper retVal = null;
-        AbstractNodeIOWrapper[] innerArray = wrappers.toArray(new AbstractNodeIOWrapper[0]);
-        for (AbstractNodeIOWrapper wrapper : innerArray) {
-            if (wrapper.getHolder().getIdentifier().equals(id)) {
-                retVal = wrapper;
-                break;
-            }
+    public void setName(String key, AbstractNodeIOWrapper value){
+        if(!wrappers.contains(value)){
+            wrappers.add(value);
         }
-        return retVal;
+        stringAbstractNodeIOWrapperHashMap.put(key, value);
     }
 
-    @Override
-    public Optional<AbstractNodeIOWrapper> remove(String id) {
-        placeholder = 0;
-        wrappers.remove(findById(id));
-        return Optional.empty();
+    public Optional<AbstractNodeIOWrapper> find(String id) {
+        return Optional.ofNullable(stringAbstractNodeIOWrapperHashMap.get(id));
     }
 
     @Override

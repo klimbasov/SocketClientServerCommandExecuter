@@ -30,6 +30,9 @@ import java.util.List;
 @Configuration
 @Slf4j
 public class ClientConfig {
+
+    @Value("${client.hostname}")
+    private String hostname;
     @Value("${client.timing.loopWaiting}")
     private int runnerTimeout;
 
@@ -61,7 +64,9 @@ public class ClientConfig {
 
     @Bean
     public IdentificationHolderImpl identificationHolder() {
-        return new IdentificationHolderImpl();
+        IdentificationHolderImpl holder = new IdentificationHolderImpl();
+        holder.setId(hostname);
+        return holder;
     }
 
     @Bean

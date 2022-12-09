@@ -3,7 +3,7 @@ package by.bsuir.server.task.impl;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.QueuePool;
-import by.bsuir.instrumental.pool.SearchableRingPool;
+import by.bsuir.instrumental.pool.impl.AbstractNodeIOWWrapperRingSearchablePool;
 import by.bsuir.instrumental.task.Task;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SocketReceiveTaskImpl implements Task {
     private final QueuePool<Packet> packetQueuePool;
-    private final SearchableRingPool<String, AbstractNodeIOWrapper> socketIOWrapperQueuePool;
+    private final AbstractNodeIOWWrapperRingSearchablePool wrappers;
     @Setter
     @Getter
     @Value("${custom.server.timing.receiveIterationsPerTaskExecution}")
@@ -39,16 +39,18 @@ public class SocketReceiveTaskImpl implements Task {
 
     @Override
     public void run() {
-        for (int counter = 0; counter < requestsPerCall && !socketIOWrapperQueuePool.isEmpty(); counter++) {
-            Optional<AbstractNodeIOWrapper> optional = socketIOWrapperQueuePool.getNext();
+        for(int counter = 0; counter < wrappers.size(); counter++){
+            Optional<AbstractNodeIOWrapper> optional = wrappers.getNext();
             if (optional.isPresent()) {
                 AbstractNodeIOWrapper wrapper = optional.get();
                 wrapper.receive().forEach(obj -> {
+                    String uuid = new String(obj.getSourceId());
+                    wrappers.setName(uuid, wrapper);
                     packetQueuePool.offer(obj);
                     logReceive(obj);
                 });
                 if (!wrapper.isAvailable()) {
-                    socketIOWrapperQueuePool.remove(wrapper.getHolder().getIdentifier());
+                    wrappers.remove(wrapper);
                     log.info("socket " + wrapper.getHolder().getIdentifier() + " disconnected");
                     tryCloseSocket(wrapper);
                 }

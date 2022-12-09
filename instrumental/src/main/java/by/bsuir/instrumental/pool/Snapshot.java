@@ -1,5 +1,5 @@
 package by.bsuir.instrumental.pool;
 
-public interface SnapshottingPool {
+public interface Snapshot {
     String snapshot();
 }

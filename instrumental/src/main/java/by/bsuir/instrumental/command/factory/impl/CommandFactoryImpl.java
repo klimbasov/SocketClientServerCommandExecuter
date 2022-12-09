@@ -7,7 +7,7 @@ import by.bsuir.instrumental.command.impl.EchoCommand;
 import by.bsuir.instrumental.command.impl.ShowCommandImpl;
 import by.bsuir.instrumental.command.impl.TimeCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
-import by.bsuir.instrumental.pool.SnapshottingPool;
+import by.bsuir.instrumental.pool.Snapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +43,7 @@ public class CommandFactoryImpl implements CommandFactory {
         commandMap.put("dir", new DirCommand());
     }
 
-    public void setWrapperPool(SnapshottingPool wrapperPool) {
+    public void setWrapperPool(Snapshot wrapperPool) {
         ShowCommandImpl showCommand = new ShowCommandImpl(wrapperPool);
         commandMap.put("show", showCommand);
     }

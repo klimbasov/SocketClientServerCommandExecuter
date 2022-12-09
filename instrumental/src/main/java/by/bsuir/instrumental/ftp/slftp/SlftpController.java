@@ -134,7 +134,13 @@ public class SlftpController implements FtpController {
 
     private void handleNotPassed(Packet packet) {
         PortionRequest request = deserializeBody(packet.getBody());
-        sendPacket(packet.getBody(), holder.getIdentifier().getBytes(), request.getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
+        Object body = deserializeBody(packet.getBody());
+        if(body instanceof PortionRequest){
+            sendPacket(packet.getBody(), holder.getIdentifier().getBytes(), request.getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
+        }
+        if(body instanceof FileMetaData){
+            sendPacket(packet.getBody(), holder.getIdentifier().getBytes(), request.getHostId().getBytes(), SlftpPacketType.GREETING);
+        }
     }
 
     private void restoreExistingProcess() {

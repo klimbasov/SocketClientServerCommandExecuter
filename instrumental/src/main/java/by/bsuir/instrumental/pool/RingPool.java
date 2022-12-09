@@ -8,4 +8,8 @@ public interface RingPool<T> {
     Optional<T> getNext();
 
     boolean isEmpty();
+
+    long size();
+
+    Optional<T> remove(T val);
 }

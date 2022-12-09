@@ -1,3 +1,4 @@
 client:
+  hostname: "laptop1"
   connectivity:
     ip: 127.0.0.3

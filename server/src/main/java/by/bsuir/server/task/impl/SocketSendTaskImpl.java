@@ -4,8 +4,8 @@ import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.pool.SearchableRingPool;
 import by.bsuir.instrumental.ftp.slftp.packet.type.SlftpPacketType;
+import by.bsuir.instrumental.pool.impl.AbstractNodeIOWWrapperRingSearchablePool;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.util.NodeIdBuilder;
@@ -28,7 +28,7 @@ import java.util.Optional;
 @Slf4j
 public class SocketSendTaskImpl implements Task {
     private final PacketQueuePoolImpl packetQueuePool;
-    private final SearchableRingPool<String, AbstractNodeIOWrapper> searchableSocketIOWrapperPool;
+    private final AbstractNodeIOWWrapperRingSearchablePool wrappers;
     @Setter
     @Getter
     @Value("${custom.server.timing.sendIterationsPerTaskExecution}")
@@ -40,7 +40,7 @@ public class SocketSendTaskImpl implements Task {
             MultiValueMap<AbstractNodeIOWrapper, Packet> abstractNodeIOWrapperPacketMultiValueMap = new LinkedMultiValueMap<>();
             packetQueuePool.pollAll().forEach(packet -> {
                 String id = new String(packet.getTargetId());
-                Optional<AbstractNodeIOWrapper> wrapperOptional = searchableSocketIOWrapperPool.find(id);
+                Optional<AbstractNodeIOWrapper> wrapperOptional = wrappers.find(id);
                 if (wrapperOptional.isPresent()) {
                     abstractNodeIOWrapperPacketMultiValueMap.add(wrapperOptional.get(), packet);
                 } else {
@@ -60,7 +60,7 @@ public class SocketSendTaskImpl implements Task {
     private void handleNotFoundResponse(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
         Packet resultPacket = switch (type) {
-            case FTP_PACKAGE -> handleSlftpRollback(packet);
+            case FTP_PACKAGE -> handleFtpRollback(packet);
             default -> handleDefault(packet);
         };
         packetQueuePool.offer(resultPacket);
@@ -77,8 +77,8 @@ public class SocketSendTaskImpl implements Task {
 
     }
 
-    private Packet handleSlftpRollback(Packet packet) {
-        log.error("(slftp)not found host " + new String(packet.getTargetId()));
+    private Packet handleFtpRollback(Packet packet) {
+        log.error("(ftp)not found host " + new String(packet.getTargetId()));
         return new Packet(
                 packet.getBody(),
                 NodeIdBuilder.getServerId().getBytes(),

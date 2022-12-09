@@ -2,7 +2,7 @@ package by.bsuir.instrumental.command.impl;
 
 import by.bsuir.instrumental.command.AbstractCommand;
 import by.bsuir.instrumental.input.StructuredCommand;
-import by.bsuir.instrumental.pool.SnapshottingPool;
+import by.bsuir.instrumental.pool.Snapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class ShowCommandImpl extends AbstractCommand {
 
     private final Map<String, Supplier<String>> supplierMap = new HashMap<>();
 
-    public ShowCommandImpl(SnapshottingPool wrapperPool) {
+    public ShowCommandImpl(Snapshot wrapperPool) {
         super(FLAGS, new String[]{}, new HashMap<>(), new HashMap<>(), "show", new Class<?>[]{});
         supplierMap.put("help", () -> HELP_MSG);
         supplierMap.put("client", wrapperPool::snapshot);
