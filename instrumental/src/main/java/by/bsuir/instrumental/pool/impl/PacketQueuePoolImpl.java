@@ -15,22 +15,30 @@ public class PacketQueuePoolImpl implements QueuePool<Packet> {
 
     @Override
     public void offer(Packet packet) {
-        packetQueue.offer(packet);
+        synchronized (this){
+            packetQueue.offer(packet);
+        }
     }
 
     @Override
     public Optional<Packet> poll() {
-        return Optional.ofNullable(packetQueue.poll());
+        synchronized (this){
+            return Optional.ofNullable(packetQueue.poll());
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return packetQueue.isEmpty();
+        synchronized (this){
+            return packetQueue.isEmpty();
+        }
     }
 
     public List<Packet> pollAll(){
-        List<Packet> packets = new LinkedList<>(packetQueue);
-        packetQueue.clear();
-        return packets;
+        synchronized (this){
+            List<Packet> packets = new LinkedList<>(packetQueue);
+            packetQueue.clear();
+            return packets;
+        }
     }
 }

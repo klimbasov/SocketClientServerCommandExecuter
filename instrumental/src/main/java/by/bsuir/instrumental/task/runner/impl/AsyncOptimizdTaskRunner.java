@@ -1,6 +1,6 @@
 package by.bsuir.instrumental.task.runner.impl;
 
-import by.bsuir.instrumental.state.StateHolder;
+import by.bsuir.instrumental.state.application.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import lombok.Getter;

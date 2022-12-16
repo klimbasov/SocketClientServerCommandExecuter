@@ -43,6 +43,5 @@ public class ServerSocketAcceptTaskImpl implements Task {
                 throw new RuntimeException(e);
             }
         }
-
     }
 }

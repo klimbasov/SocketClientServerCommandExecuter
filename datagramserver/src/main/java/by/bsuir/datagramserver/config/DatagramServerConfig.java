@@ -13,7 +13,7 @@ import by.bsuir.instrumental.node.UdpSocketIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.pool.UuidAddressTable;
-import by.bsuir.instrumental.state.StateHolder;
+import by.bsuir.instrumental.state.application.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;

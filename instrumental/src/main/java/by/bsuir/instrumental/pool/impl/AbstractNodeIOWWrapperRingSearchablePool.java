@@ -12,52 +12,68 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements Snapshot {
     private int placeholderNamed = 0;
 
     public void offerUnnamed(AbstractNodeIOWrapper obj) {
-        wrappers.add(obj);
+        synchronized (this){
+            wrappers.add(obj);
+        }
     }
 
     public Optional<AbstractNodeIOWrapper> getNext() {
-        if (placeholderNamed >= wrappers.size()) {
-            placeholderNamed = 0;
+        synchronized (this){
+            if (placeholderNamed >= wrappers.size()) {
+                placeholderNamed = 0;
+            }
+            return Optional.of(wrappers.get(placeholderNamed++));
         }
-        return Optional.of(wrappers.get(placeholderNamed++));
     }
 
     public boolean isEmpty() {
-        return wrappers.isEmpty();
+        synchronized (this){
+            return wrappers.isEmpty();
+        }
     }
 
     public long size() {
-        return wrappers.size();
+        synchronized (this){
+            return wrappers.size();
+        }
     }
 
     public Optional<AbstractNodeIOWrapper> remove(AbstractNodeIOWrapper wrapper){
         List<String> removedNames = new LinkedList<>();
-        for (Map.Entry<String, AbstractNodeIOWrapper> entry : stringAbstractNodeIOWrapperHashMap.entrySet()){
-            if(entry.getValue().equals(wrapper)){
-                removedNames.add(entry.getKey());
+        synchronized (this){
+            for (Map.Entry<String, AbstractNodeIOWrapper> entry : stringAbstractNodeIOWrapperHashMap.entrySet()){
+                if(entry.getValue().equals(wrapper)){
+                    removedNames.add(entry.getKey());
+                }
             }
+            removedNames.forEach(stringAbstractNodeIOWrapperHashMap::remove);
+            Optional<AbstractNodeIOWrapper> optional = Optional.empty();
+            if(wrappers.remove(wrapper)){
+                optional = Optional.of(wrapper);
+            }
+            return optional;
         }
-        removedNames.forEach(stringAbstractNodeIOWrapperHashMap::remove);
-        Optional<AbstractNodeIOWrapper> optional = Optional.empty();
-        if(wrappers.remove(wrapper)){
-            optional = Optional.of(wrapper);
-        }
-        return optional;
     }
 
     public void setName(String key, AbstractNodeIOWrapper value){
-        if(!wrappers.contains(value)){
-            wrappers.add(value);
+        synchronized (this){
+            if(!wrappers.contains(value)){
+                wrappers.add(value);
+            }
+            stringAbstractNodeIOWrapperHashMap.put(key, value);
         }
-        stringAbstractNodeIOWrapperHashMap.put(key, value);
     }
 
     public Optional<AbstractNodeIOWrapper> find(String id) {
-        return Optional.ofNullable(stringAbstractNodeIOWrapperHashMap.get(id));
+        synchronized (this){
+            return Optional.ofNullable(stringAbstractNodeIOWrapperHashMap.get(id));
+        }
     }
 
     @Override
     public String snapshot() {
-        return wrappers.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
+        synchronized (this) {
+            return wrappers.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
+        }
     }
 }

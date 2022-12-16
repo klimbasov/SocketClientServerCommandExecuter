@@ -9,6 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/AcyncServer" />
             <option value="$PROJECT_DIR$/client" />
             <option value="$PROJECT_DIR$/client/datagramserver" />
             <option value="$PROJECT_DIR$/command" />

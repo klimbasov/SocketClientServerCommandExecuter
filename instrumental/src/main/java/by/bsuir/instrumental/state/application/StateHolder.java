@@ -1,4 +1,4 @@
-package by.bsuir.instrumental.state;
+package by.bsuir.instrumental.state.application;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -6,5 +6,5 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class StateHolder {
-    boolean isRunning = true;
+    volatile boolean isRunning = true;
 }

@@ -1,10 +1,9 @@
 package by.bsuir.instrumental.command.ui;
 
-import by.bsuir.instrumental.state.StateHolder;
+import by.bsuir.instrumental.state.application.StateHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 

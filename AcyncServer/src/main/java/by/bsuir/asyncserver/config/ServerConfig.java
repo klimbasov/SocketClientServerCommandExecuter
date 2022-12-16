@@ -1,8 +1,14 @@
-package by.bsuir.server.config;
+package by.bsuir.asyncserver.config;
 
+import by.bsuir.asyncserver.task.impl.ServerSocketAcceptTask;
+import by.bsuir.asyncserver.task.impl.SocketReciveInfiniteTask;
+import by.bsuir.asyncserver.task.impl.SocketSendInfiniteTask;
 import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.command.factory.impl.CommandFactoryImpl;
 import by.bsuir.instrumental.command.impl.CopyFileCommand;
+import by.bsuir.instrumental.ftp.slftp.SlftpController;
+import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
+import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
@@ -11,14 +17,14 @@ import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.impl.AbstractNodeIOWWrapperRingSearchablePool;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
-import by.bsuir.instrumental.ftp.slftp.SlftpController;
-import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
-import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.state.application.StateHolder;
+import by.bsuir.instrumental.task.InfiniteTask;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
+import by.bsuir.instrumental.task.runner.impl.MultithreadingTaskRunner;
 import by.bsuir.instrumental.util.NodeIdBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,7 +35,6 @@ import java.util.List;
 
 @Configuration
 public class ServerConfig {
-
     @Value("${custom.server.connectivity.port}")
     private int port;
     @Value("${custom.server.connectivity.so_timeout}")
@@ -72,7 +77,7 @@ public class ServerConfig {
     }
 
     @Bean
-    public QueuePool<Packet> inputPacketPool() {
+    public PacketQueuePoolImpl inputPacketPool() {
         return new PacketQueuePoolImpl();
     }
 
@@ -100,9 +105,24 @@ public class ServerConfig {
         return wrapperPool;
     }
 
+    @Bean(name = "tasks")
+    public List<Task> tasks(ServerSocket socket, AbstractNodeIOWWrapperRingSearchablePool pool){
+        Task serverSocketAccept = new ServerSocketAcceptTask(socket, pool);
+        return List.of(serverSocketAccept);
+    }
+
+    @Bean(name = "infiniteTasks")
+    public List<InfiniteTask> infiniteTasks(PacketQueuePoolImpl queuePool,
+                                            AbstractNodeIOWWrapperRingSearchablePool abstractNodeIOWWrapperRingSearchablePool,
+                                            StateHolder stateHolder){
+        InfiniteTask receive = new SocketReciveInfiniteTask(queuePool, abstractNodeIOWWrapperRingSearchablePool, stateHolder);
+        InfiniteTask send = new SocketSendInfiniteTask(queuePool, abstractNodeIOWWrapperRingSearchablePool, stateHolder);
+        return List.of(receive, send);
+    }
+
     @Bean(destroyMethod = "destroy")
-    public TaskRunner taskRunner(List<Task> tasks, StateHolder stateHolder) {
-        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]), stateHolder);
+    public TaskRunner taskRunner(@Qualifier("tasks") List<Task> tasks, @Qualifier("infiniteTasks") List<InfiniteTask> infiniteTasks, StateHolder stateHolder) {
+        MultithreadingTaskRunner runner = new MultithreadingTaskRunner(infiniteTasks.toArray(new InfiniteTask[0]), tasks.toArray(new Task[0]), stateHolder);
         runner.setSleepTime(runnerTimeout);
         return runner;
     }

@@ -15,7 +15,7 @@ import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.ftp.slftp.SlftpController;
 import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
 import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
-import by.bsuir.instrumental.state.StateHolder;
+import by.bsuir.instrumental.state.application.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;

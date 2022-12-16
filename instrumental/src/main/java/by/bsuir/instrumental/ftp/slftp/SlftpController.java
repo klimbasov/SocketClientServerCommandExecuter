@@ -35,6 +35,12 @@ public class SlftpController implements FtpController {
 
     private static final String DOWNLOAD_DIRECTORY_PATH = "./downloads";
 
+    public List<Packet> receiveForUuid(String uuid){
+        List<Packet> packets = packetQueue.stream().filter(packet -> uuid.equals(new String(packet.getTargetId()))).toList();
+        packets.forEach(packetQueue::remove);
+        return packets;
+    }
+
     @Override
     public List<Packet> receive() {
         if (packetQueue.isEmpty()) {

@@ -8,4 +8,5 @@ include 'datagramclient'
 include 'client:datagramserver'
 findProject(':client:datagramserver')?.name = 'datagramserver'
 include 'datagramserver'
+include 'AcyncServer'
 

@@ -1,0 +1,11 @@
+custom:
+  server:
+    connectivity:
+      port: 8081
+      so_timeout: 15
+      id: server
+    timing:
+      loopWaiting: 10
+      sendIterationsPerTaskExecution: 3
+      receiveIterationsPerTaskExecution: 3
+      socketAcceptIterationsPerTaskExecution: 1

@@ -4,18 +4,19 @@ import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.ftp.FtpController;
 import by.bsuir.instrumental.input.StructuredCommand;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
-import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
+import by.bsuir.instrumental.state.socket.ThreadStateHolder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Slf4j
-public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
-
+public class SyncExecThreadTaskDriverNode {
     private final FtpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
@@ -23,35 +24,20 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
     private static final int MAX_IDEL = 900;
     private int idel = 0;
 
-    public EndNodeIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, FtpController controller) {
-        super(holder);
+    public SyncExecThreadTaskDriverNode(StructuredCommandPacketMapper processor, CommandFactory commandFactory, FtpController controller){
         this.processor = processor;
         this.commandFactory = commandFactory;
         this.controller = controller;
     }
 
-    @Override
-    public List<Packet> receive() {
-//        ++idel;
-//        if(idel >= MAX_IDEL){
-//            log.warn("Node spend too much time in idel state. Take attention.");
-//            idel = 0;
-//        }
+    public List<Packet> process(List<Packet> packets, ThreadStateHolder threadStateHolder){
+        packets.forEach(this::packetHandler);
         if (packetQueue.isEmpty()) {
             packetQueue.addAll(controller.receive());
         }
-//        if(!packetQueue.isEmpty()){
-//            idel = 0;
-//        }
-        List<Packet> packets = new ArrayList<>(packetQueue);
+        List<Packet> responses = new ArrayList<>(packetQueue);
         packetQueue.clear();
-        return packets;
-    }
-
-    @Override
-    public void send(List<Packet> packets) {
-        idel = 0;
-        packets.forEach(this::packetHandler);
+        return responses;
     }
 
     private void packetHandler(Packet packet){
@@ -61,15 +47,6 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
             case INFORM_PACKAGE -> informPacketHandler(packet);
             case FTP_PACKAGE -> slftpPackageHandler(packet);
         }
-    }
-
-    private void slftpPackageHandler(Packet packet) {
-        controller.send(packet);
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return true;
     }
 
     private void informPacketHandler(Packet packet) {
@@ -91,8 +68,7 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
         results.forEach(packetQueue::offer);
     }
 
-    @Override
-    public void close() {
-        controller.close();
+    private void slftpPackageHandler(Packet packet) {
+        controller.send(packet);
     }
 }

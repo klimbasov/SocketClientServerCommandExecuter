@@ -16,36 +16,48 @@ public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<Strin
 
     @Override
     public void offer(AbstractNodeIOWrapper obj) {
-        socketIOWrapperStringHashMap.put(obj.getHolder().getIdentifier(), obj);
-        abstractNodeIOWrapperQueue.offer(obj);
+        synchronized (this){
+            socketIOWrapperStringHashMap.put(obj.getHolder().getIdentifier(), obj);
+            abstractNodeIOWrapperQueue.offer(obj);
+        }
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> poll() {
-        Optional<AbstractNodeIOWrapper> socketIOWrapper = Optional.ofNullable(abstractNodeIOWrapperQueue.poll());
-        socketIOWrapper.ifPresent(socketIOWrapper1 -> socketIOWrapperStringHashMap.remove(socketIOWrapper1.getHolder().getIdentifier()));
-        return socketIOWrapper;
+        synchronized (this){
+            Optional<AbstractNodeIOWrapper> socketIOWrapper = Optional.ofNullable(abstractNodeIOWrapperQueue.poll());
+            socketIOWrapper.ifPresent(socketIOWrapper1 -> socketIOWrapperStringHashMap.remove(socketIOWrapper1.getHolder().getIdentifier()));
+            return socketIOWrapper;
+        }
     }
 
     @Override
     public boolean isEmpty() {
-        return abstractNodeIOWrapperQueue.isEmpty();
+        synchronized (this){
+            return abstractNodeIOWrapperQueue.isEmpty();
+        }
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> find(String id) {
-        return Optional.ofNullable(socketIOWrapperStringHashMap.get(id));
+        synchronized (this){
+            return Optional.ofNullable(socketIOWrapperStringHashMap.get(id));
+        }
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> remove(String id) {
-        AbstractNodeIOWrapper wrapper = socketIOWrapperStringHashMap.remove(id);
-        abstractNodeIOWrapperQueue.remove(wrapper);
-        return Optional.ofNullable(wrapper);
+        synchronized (this){
+            AbstractNodeIOWrapper wrapper = socketIOWrapperStringHashMap.remove(id);
+            abstractNodeIOWrapperQueue.remove(wrapper);
+            return Optional.ofNullable(wrapper);
+        }
     }
 
     @Override
     public String snapshot() {
-        return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
+        synchronized (this){
+            return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
+        }
     }
 }
