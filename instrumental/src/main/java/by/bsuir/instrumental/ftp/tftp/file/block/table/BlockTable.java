@@ -6,11 +6,11 @@ import java.io.Serializable;
 
 @Getter
 public class BlockTable implements Serializable {
-    private byte[] table;
     private final int blockSize;
     private final long blockId;
+    private byte[] table;
 
-    public BlockTable(int blockSize, long blockId){
+    public BlockTable(int blockSize, long blockId) {
         this.blockId = blockId;
         this.blockSize = blockSize;
         init();
@@ -19,12 +19,12 @@ public class BlockTable implements Serializable {
     private void init() {
         int tableElements = Math.ceilDiv(blockSize, 8);
         int lastBlockElement = blockSize & 0x7;
-        lastBlockElement = (lastBlockElement == 0) ? 0x7 : lastBlockElement-1;
+        lastBlockElement = (lastBlockElement == 0) ? 0x7 : lastBlockElement - 1;
         table = new byte[tableElements];
-        for(int counter = 0; counter < tableElements - 1; counter++){
+        for (int counter = 0; counter < tableElements - 1; counter++) {
             table[counter] = (byte) 0xff;
         }
-        table[tableElements-1] = (byte) ((2 << lastBlockElement) - 1);
+        table[tableElements - 1] = (byte) ((2 << lastBlockElement) - 1);
     }
 
     public boolean isComplete() {

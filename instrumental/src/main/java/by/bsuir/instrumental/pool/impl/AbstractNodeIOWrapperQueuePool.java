@@ -16,7 +16,7 @@ public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<Strin
 
     @Override
     public void offer(AbstractNodeIOWrapper obj) {
-        synchronized (this){
+        synchronized (this) {
             socketIOWrapperStringHashMap.put(obj.getHolder().getIdentifier(), obj);
             abstractNodeIOWrapperQueue.offer(obj);
         }
@@ -24,7 +24,7 @@ public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<Strin
 
     @Override
     public Optional<AbstractNodeIOWrapper> poll() {
-        synchronized (this){
+        synchronized (this) {
             Optional<AbstractNodeIOWrapper> socketIOWrapper = Optional.ofNullable(abstractNodeIOWrapperQueue.poll());
             socketIOWrapper.ifPresent(socketIOWrapper1 -> socketIOWrapperStringHashMap.remove(socketIOWrapper1.getHolder().getIdentifier()));
             return socketIOWrapper;
@@ -33,21 +33,21 @@ public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<Strin
 
     @Override
     public boolean isEmpty() {
-        synchronized (this){
+        synchronized (this) {
             return abstractNodeIOWrapperQueue.isEmpty();
         }
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> find(String id) {
-        synchronized (this){
+        synchronized (this) {
             return Optional.ofNullable(socketIOWrapperStringHashMap.get(id));
         }
     }
 
     @Override
     public Optional<AbstractNodeIOWrapper> remove(String id) {
-        synchronized (this){
+        synchronized (this) {
             AbstractNodeIOWrapper wrapper = socketIOWrapperStringHashMap.remove(id);
             abstractNodeIOWrapperQueue.remove(wrapper);
             return Optional.ofNullable(wrapper);
@@ -56,7 +56,7 @@ public class AbstractNodeIOWrapperQueuePool implements SearchableQueuePool<Strin
 
     @Override
     public String snapshot() {
-        synchronized (this){
+        synchronized (this) {
             return abstractNodeIOWrapperQueue.stream().map(wrapper -> wrapper.getHolder().getIdentifier()).reduce((s, s2) -> s + ("\n" + s2)).orElse("no clients can be showed");
         }
     }

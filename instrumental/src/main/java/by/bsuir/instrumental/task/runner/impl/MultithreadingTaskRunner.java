@@ -23,7 +23,7 @@ public class MultithreadingTaskRunner implements TaskRunner {
     @Setter
     private int sleepTime = 50;
 
-    public MultithreadingTaskRunner(InfiniteTask[] threadTasks, Task[] tasks, StateHolder stateHolder){
+    public MultithreadingTaskRunner(InfiniteTask[] threadTasks, Task[] tasks, StateHolder stateHolder) {
         this.tasks = tasks;
         this.threadTasks = threadTasks;
         this.stateHolder = stateHolder;
@@ -37,7 +37,7 @@ public class MultithreadingTaskRunner implements TaskRunner {
         threads.forEach(thread -> {
             try {
                 thread.join(1000);
-            }catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 log.error("Thread " + thread.getName() + " cannot be joined");
             }
         });
@@ -51,7 +51,7 @@ public class MultithreadingTaskRunner implements TaskRunner {
             threads.add(thread);
         });
 
-        while (stateHolder.isRunning()){
+        while (stateHolder.isRunning()) {
             try {
                 for (Task task : tasks) {
                     task.run();

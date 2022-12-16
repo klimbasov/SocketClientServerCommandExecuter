@@ -47,22 +47,22 @@ public class DatagramClientConfig {
 
 
     @Bean
-    public StateHolder stateHolder(){
+    public StateHolder stateHolder() {
         return new StateHolder().setRunning(true);
     }
 
     @Bean
-    public InputQueuePool inputQueuePool(){
+    public InputQueuePool inputQueuePool() {
         return new InputQueuePool();
     }
 
     @Bean
-    public RawInputStructuredCommandAdapter rawInputStructuredCommandAdapter(){
+    public RawInputStructuredCommandAdapter rawInputStructuredCommandAdapter() {
         return new RawInputStructuredCommandAdapter();
     }
 
     @Bean
-    public SystemInputProducer systemInputProducer(StateHolder holder, InputQueuePool pool){
+    public SystemInputProducer systemInputProducer(StateHolder holder, InputQueuePool pool) {
         return new SystemInputProducer(holder, pool);
     }
 

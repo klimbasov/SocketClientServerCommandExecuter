@@ -1,7 +1,7 @@
 package by.bsuir.instrumental.ftp.tftp.pool;
 
-import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.ftp.tftp.file.output.FileOutputStructure;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,7 +14,7 @@ public class FileOutputPool implements SearchableQueuePool<String, FileOutputStr
 
     @Override
     public void offer(FileOutputStructure obj) {
-        if(!stringFileOutputStructureHashMap.containsKey(obj.getId())){
+        if (!stringFileOutputStructureHashMap.containsKey(obj.getId())) {
             fileOutputStructureLinkedList.offer(obj);
             stringFileOutputStructureHashMap.put(obj.getId(), obj);
         }
@@ -44,7 +44,7 @@ public class FileOutputPool implements SearchableQueuePool<String, FileOutputStr
         return optional;
     }
 
-    public List<FileOutputStructure> getAllDelayed(){
+    public List<FileOutputStructure> getAllDelayed() {
         return fileOutputStructureLinkedList.stream().filter(FileOutputStructure::isNackNeeded).toList();
     }
 }

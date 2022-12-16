@@ -8,12 +8,13 @@ public class ThreadStateHolder {
     private volatile boolean isRunning;
     @Setter
     private String uuid;
-    public ThreadStateHolder(){
+
+    public ThreadStateHolder() {
         this.isRunning = true;
         uuid = "";
     }
 
-    public void stop(){
+    public void stop() {
         isRunning = false;
     }
 }

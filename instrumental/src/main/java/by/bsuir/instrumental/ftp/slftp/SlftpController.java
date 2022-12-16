@@ -1,10 +1,6 @@
 package by.bsuir.instrumental.ftp.slftp;
 
 import by.bsuir.instrumental.ftp.FtpController;
-import by.bsuir.instrumental.node.identification.IdentificationHolder;
-import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.ftp.slftp.dto.FileMetaData;
 import by.bsuir.instrumental.ftp.slftp.dto.Portion;
 import by.bsuir.instrumental.ftp.slftp.dto.PortionRequest;
@@ -12,12 +8,19 @@ import by.bsuir.instrumental.ftp.slftp.meta.FileCopyProcess;
 import by.bsuir.instrumental.ftp.slftp.meta.InputFileRecord;
 import by.bsuir.instrumental.ftp.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
+import by.bsuir.instrumental.node.identification.IdentificationHolder;
+import by.bsuir.instrumental.packet.Packet;
+import by.bsuir.instrumental.packet.type.PacketType;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 import static java.util.Objects.nonNull;
 
@@ -27,63 +30,12 @@ public class SlftpController implements FtpController {
     private static final short MAX_DECLINED_TIME = 3;
     private static final int PORTION_SIZE = 1024 << 7;
     private static final int MAX_IDLE_TIME = 512;
+    private static final String DOWNLOAD_DIRECTORY_PATH = "./downloads";
     private static int idleTime = 0;
     private final IdentificationHolder holder;
     private final FileProcessUriQueuePool processSearchablePool;
     private final SearchableQueuePool<String, InputFileRecord> inputFileRecordSearchablePool;
     private final LinkedList<Packet> packetQueue = new LinkedList<>();
-
-    private static final String DOWNLOAD_DIRECTORY_PATH = "./downloads";
-
-    public List<Packet> receiveForUuid(String uuid){
-        List<Packet> packets = packetQueue.stream().filter(packet -> uuid.equals(new String(packet.getTargetId()))).toList();
-        packets.forEach(packetQueue::remove);
-        return packets;
-    }
-
-    @Override
-    public List<Packet> receive() {
-        if (packetQueue.isEmpty()) {
-            ++idleTime;
-        } else {
-            idleTime = 0;
-        }
-        if (idleTime >= MAX_IDLE_TIME) {
-            restoreExistingProcess();
-        }
-        List<Packet> packets = new ArrayList<>(packetQueue);
-        packetQueue.clear();
-        return packets;
-    }
-
-    @Override
-    public void send(Packet packet) {
-        if (packet.getType() != PacketType.FTP_PACKAGE.typeId) {
-            throw new RuntimeException("slftp controller got non slftp packet");
-        }
-        switch (SlftpPacketType.getByTypeId(packet.getFlags())) {
-            case GREETING -> handleGreeting(packet);
-            case PORTION -> handlePortion(packet);
-            case PORTION_REQ -> handlePortionReq(packet);
-            case ABORT -> handleAbort(packet);
-            case DECLINE -> handleDecline(packet);
-            case NOT_PASSED -> handleNotPassed(packet);
-            case GREETING_REQ -> handleGreetingReq(packet);
-            default -> log.error("nothing great happened");
-        }
-    }
-
-    @Override
-    public void upload(String uri, String destinationId) {
-        Optional<FileMetaData> optional = getMetadataByFileUrl(uri);
-        optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING));
-    }
-
-    @Override
-    public void download(String uri, String destinationId) {
-        Optional<FileMetaData> optional = Optional.of(new FileMetaData().setHostId(destinationId).setUrl(uri));
-        optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING_REQ));
-    }
 
     private static void addProcessMils(FileCopyProcess copyProcess) {
         copyProcess.setMils(copyProcess.getMils() + (System.currentTimeMillis() - copyProcess.getLastTimeTransceive()));
@@ -133,7 +85,57 @@ public class SlftpController implements FtpController {
         }
     }
 
-    private void handleGreetingReq(Packet packet){
+    public List<Packet> receiveForUuid(String uuid) {
+        List<Packet> packets = packetQueue.stream().filter(packet -> uuid.equals(new String(packet.getTargetId()))).toList();
+        packets.forEach(packetQueue::remove);
+        return packets;
+    }
+
+    @Override
+    public List<Packet> receive() {
+        if (packetQueue.isEmpty()) {
+            ++idleTime;
+        } else {
+            idleTime = 0;
+        }
+        if (idleTime >= MAX_IDLE_TIME) {
+            restoreExistingProcess();
+        }
+        List<Packet> packets = new ArrayList<>(packetQueue);
+        packetQueue.clear();
+        return packets;
+    }
+
+    @Override
+    public void send(Packet packet) {
+        if (packet.getType() != PacketType.FTP_PACKAGE.typeId) {
+            throw new RuntimeException("slftp controller got non slftp packet");
+        }
+        switch (SlftpPacketType.getByTypeId(packet.getFlags())) {
+            case GREETING -> handleGreeting(packet);
+            case PORTION -> handlePortion(packet);
+            case PORTION_REQ -> handlePortionReq(packet);
+            case ABORT -> handleAbort(packet);
+            case DECLINE -> handleDecline(packet);
+            case NOT_PASSED -> handleNotPassed(packet);
+            case GREETING_REQ -> handleGreetingReq(packet);
+            default -> log.error("nothing great happened");
+        }
+    }
+
+    @Override
+    public void upload(String uri, String destinationId) {
+        Optional<FileMetaData> optional = getMetadataByFileUrl(uri);
+        optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING));
+    }
+
+    @Override
+    public void download(String uri, String destinationId) {
+        Optional<FileMetaData> optional = Optional.of(new FileMetaData().setHostId(destinationId).setUrl(uri));
+        optional.ifPresent(fileMetaData -> sendPacket(serializeBody(fileMetaData), holder.getIdentifier().getBytes(), destinationId.getBytes(), SlftpPacketType.GREETING_REQ));
+    }
+
+    private void handleGreetingReq(Packet packet) {
         FileMetaData metaData = deserializeBody(packet.getBody());
         upload(metaData.getUrl(), metaData.getHostId());
     }
@@ -141,10 +143,10 @@ public class SlftpController implements FtpController {
     private void handleNotPassed(Packet packet) {
         PortionRequest request = deserializeBody(packet.getBody());
         Object body = deserializeBody(packet.getBody());
-        if(body instanceof PortionRequest){
+        if (body instanceof PortionRequest) {
             sendPacket(packet.getBody(), holder.getIdentifier().getBytes(), request.getHostId().getBytes(), SlftpPacketType.PORTION_REQ);
         }
-        if(body instanceof FileMetaData){
+        if (body instanceof FileMetaData) {
             sendPacket(packet.getBody(), holder.getIdentifier().getBytes(), request.getHostId().getBytes(), SlftpPacketType.GREETING);
         }
     }
@@ -328,9 +330,9 @@ public class SlftpController implements FtpController {
         return Path.of(fileUrl).getFileName().toString();
     }
 
-    private void createDownloadDirIfNotExist(){
+    private void createDownloadDirIfNotExist() {
         File directory = new File(DOWNLOAD_DIRECTORY_PATH);
-        if(!directory.exists()||!directory.isDirectory()){
+        if (!directory.exists() || !directory.isDirectory()) {
             directory.mkdirs();
         }
 

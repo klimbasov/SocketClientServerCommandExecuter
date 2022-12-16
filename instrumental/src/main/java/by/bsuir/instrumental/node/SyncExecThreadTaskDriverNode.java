@@ -17,20 +17,20 @@ import java.util.Queue;
 
 @Slf4j
 public class SyncExecThreadTaskDriverNode {
+    private static final int MAX_IDEL = 900;
     private final FtpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
-    private static final int MAX_IDEL = 900;
     private int idel = 0;
 
-    public SyncExecThreadTaskDriverNode(StructuredCommandPacketMapper processor, CommandFactory commandFactory, FtpController controller){
+    public SyncExecThreadTaskDriverNode(StructuredCommandPacketMapper processor, CommandFactory commandFactory, FtpController controller) {
         this.processor = processor;
         this.commandFactory = commandFactory;
         this.controller = controller;
     }
 
-    public List<Packet> process(List<Packet> packets, ThreadStateHolder threadStateHolder){
+    public List<Packet> process(List<Packet> packets, ThreadStateHolder threadStateHolder) {
         packets.forEach(this::packetHandler);
         if (packetQueue.isEmpty()) {
             packetQueue.addAll(controller.receive());
@@ -40,7 +40,7 @@ public class SyncExecThreadTaskDriverNode {
         return responses;
     }
 
-    private void packetHandler(Packet packet){
+    private void packetHandler(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
         switch (type) {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);

@@ -1,7 +1,6 @@
 package by.bsuir.instrumental.command.ui;
 
 import by.bsuir.instrumental.input.StructuredCommand;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.LinkedList;

@@ -7,6 +7,7 @@ import java.net.DatagramPacket;
 
 public class SequenceDecoderImpl implements SequenceDecoder {
     private ByteArrayOutputStream stream;
+
     @Override
     public byte[] decode(DatagramPacket[] input) {
 //        stream.write();

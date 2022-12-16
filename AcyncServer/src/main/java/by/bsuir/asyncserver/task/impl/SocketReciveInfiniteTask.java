@@ -14,11 +14,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class SocketReciveInfiniteTask implements InfiniteTask {
-    private boolean isRunning = true;
-
     private final QueuePool<Packet> packetQueuePool;
     private final AbstractNodeIOWWrapperRingSearchablePool wrappers;
     private final StateHolder stateHolder;
+    private boolean isRunning = true;
+
     private static void tryCloseSocket(AbstractNodeIOWrapper wrapper) {
         try {
             wrapper.close();
@@ -33,7 +33,7 @@ public class SocketReciveInfiniteTask implements InfiniteTask {
 
     @Override
     public void run() {
-        while (isRunning && stateHolder.isRunning()){
+        while (isRunning && stateHolder.isRunning()) {
             try {
                 Optional<AbstractNodeIOWrapper> optional = wrappers.getNext();
                 if (optional.isPresent()) {
@@ -50,7 +50,7 @@ public class SocketReciveInfiniteTask implements InfiniteTask {
                         tryCloseSocket(wrapper);
                     }
                 }
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 log.error(e.getMessage());
             }
         }

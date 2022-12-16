@@ -11,6 +11,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 @RequiredArgsConstructor
 public class AsyncServer implements CommandLineRunner {
     private final TaskRunner runner;
+
     public static void main(String[] args) {
         new SpringApplicationBuilder(AsyncServer.class).web(WebApplicationType.NONE).run(args);
     }

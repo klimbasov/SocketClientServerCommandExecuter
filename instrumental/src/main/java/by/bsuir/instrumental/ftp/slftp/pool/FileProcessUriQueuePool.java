@@ -1,7 +1,7 @@
 package by.bsuir.instrumental.ftp.slftp.pool;
 
-import by.bsuir.instrumental.pool.SearchableQueuePool;
 import by.bsuir.instrumental.ftp.slftp.meta.FileCopyProcess;
+import by.bsuir.instrumental.pool.SearchableQueuePool;
 
 import java.util.LinkedList;
 import java.util.Map;

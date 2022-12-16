@@ -14,20 +14,20 @@ public class UuidAddressTable {
     @Setter
     private SocketAddress defaultGateway;
 
-    public UuidAddressTable(){
+    public UuidAddressTable() {
         this.addressTable = new HashMap<>();
     }
 
-    public SocketAddress get(String uuid){
+    public SocketAddress get(String uuid) {
         SocketAddress address = addressTable.get(uuid);
         return nonNull(address) ? address : getDefaultGateway();
     }
 
-    public void put(String uuid, SocketAddress address){
+    public void put(String uuid, SocketAddress address) {
         addressTable.put(uuid, address);
     }
 
-    public boolean contains(String uuid){
+    public boolean contains(String uuid) {
         return addressTable.containsKey(uuid);
     }
 }

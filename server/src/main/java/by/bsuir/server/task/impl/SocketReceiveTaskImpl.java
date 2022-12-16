@@ -39,7 +39,7 @@ public class SocketReceiveTaskImpl implements Task {
 
     @Override
     public void run() {
-        for(int counter = 0; counter < wrappers.size(); counter++){
+        for (int counter = 0; counter < wrappers.size(); counter++) {
             Optional<AbstractNodeIOWrapper> optional = wrappers.getNext();
             if (optional.isPresent()) {
                 AbstractNodeIOWrapper wrapper = optional.get();

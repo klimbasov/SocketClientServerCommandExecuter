@@ -1,13 +1,15 @@
 package by.bsuir.instrumental.ftp.tftp.file.output;
 
 import by.bsuir.instrumental.ftp.slftp.dto.FileMetaData;
-import by.bsuir.instrumental.ftp.tftp.file.block.table.portion.Portion;
 import by.bsuir.instrumental.ftp.tftp.file.block.table.BlockTable;
+import by.bsuir.instrumental.ftp.tftp.file.block.table.portion.Portion;
 import by.bsuir.instrumental.ftp.util.file.FileBlockIOUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,11 +26,11 @@ public class FileOutputStructure implements Closeable {
     private final long blockAmount;
     private final long portionAmount;
     private final String path;
+    private final long startMils;
     private BlockTable blockTable;
     private long blockNum;
     private List<Portion> portions;
     private short faultCounter;
-    private final long startMils;
     private BufferedOutputStream bos;
 
     //testing fields
@@ -38,7 +40,7 @@ public class FileOutputStructure implements Closeable {
     private long nackCounter;
     private long lastDelayMils;
 
-    public FileOutputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount, long portionAmount){
+    public FileOutputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount, long portionAmount) {
         this.id = id;
         this.path = path;
         this.blockAmount = blockAmount;
@@ -54,25 +56,25 @@ public class FileOutputStructure implements Closeable {
         this.lastDelayMils = System.currentTimeMillis();
     }
 
-    public void incBlockNum(){
-        if(blockNum < blockAmount){
+    public void incBlockNum() {
+        if (blockNum < blockAmount) {
             FileBlockIOUtil.writeBlock(this);
             ++blockNum;
         }
-        if(blockNum < blockAmount){
+        if (blockNum < blockAmount) {
             this.blockTable = generateBlockTable(blockNum, portionAmount);
             this.portions = new ArrayList<>(Collections.nCopies(blockTable.getBlockSize(), null));
         }
     }
 
-    public boolean isComplete(){
+    public boolean isComplete() {
         return blockNum >= blockAmount;
     }
 
-    public boolean isNackNeeded(){
+    public boolean isNackNeeded() {
         boolean isNeeded = false;
         long curMils = System.currentTimeMillis();
-        if(lastDelayMils < curMils){
+        if (lastDelayMils < curMils) {
             isNeeded = true;
             ++nackCounter;
             lastDelayMils = curMils + getDelayFuncVal(nackCounter);
@@ -80,21 +82,24 @@ public class FileOutputStructure implements Closeable {
         return isNeeded;
     }
 
-    public void incPortionsRes(){
+    public void incPortionsRes() {
         ++portionsReceived;
     }
-    public void incAck(){
+
+    public void incAck() {
         ++acksSent;
     }
-    public void incNack(){
+
+    public void incNack() {
         ++nacksSent;
     }
-    public void incNackCounter(){
+
+    public void incNackCounter() {
         lastDelayMils = System.currentTimeMillis();
         ++nackCounter;
     }
 
-    public void dropNackCounter(){
+    public void dropNackCounter() {
         nackCounter = 0;
         lastDelayMils = System.currentTimeMillis() + getDelayFuncVal(0);
     }

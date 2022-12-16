@@ -12,13 +12,13 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements Snapshot {
     private int placeholderNamed = 0;
 
     public void offerUnnamed(AbstractNodeIOWrapper obj) {
-        synchronized (this){
+        synchronized (this) {
             wrappers.add(obj);
         }
     }
 
     public Optional<AbstractNodeIOWrapper> getNext() {
-        synchronized (this){
+        synchronized (this) {
             if (placeholderNamed >= wrappers.size()) {
                 placeholderNamed = 0;
             }
@@ -27,37 +27,37 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements Snapshot {
     }
 
     public boolean isEmpty() {
-        synchronized (this){
+        synchronized (this) {
             return wrappers.isEmpty();
         }
     }
 
     public long size() {
-        synchronized (this){
+        synchronized (this) {
             return wrappers.size();
         }
     }
 
-    public Optional<AbstractNodeIOWrapper> remove(AbstractNodeIOWrapper wrapper){
+    public Optional<AbstractNodeIOWrapper> remove(AbstractNodeIOWrapper wrapper) {
         List<String> removedNames = new LinkedList<>();
-        synchronized (this){
-            for (Map.Entry<String, AbstractNodeIOWrapper> entry : stringAbstractNodeIOWrapperHashMap.entrySet()){
-                if(entry.getValue().equals(wrapper)){
+        synchronized (this) {
+            for (Map.Entry<String, AbstractNodeIOWrapper> entry : stringAbstractNodeIOWrapperHashMap.entrySet()) {
+                if (entry.getValue().equals(wrapper)) {
                     removedNames.add(entry.getKey());
                 }
             }
             removedNames.forEach(stringAbstractNodeIOWrapperHashMap::remove);
             Optional<AbstractNodeIOWrapper> optional = Optional.empty();
-            if(wrappers.remove(wrapper)){
+            if (wrappers.remove(wrapper)) {
                 optional = Optional.of(wrapper);
             }
             return optional;
         }
     }
 
-    public void setName(String key, AbstractNodeIOWrapper value){
-        synchronized (this){
-            if(!wrappers.contains(value)){
+    public void setName(String key, AbstractNodeIOWrapper value) {
+        synchronized (this) {
+            if (!wrappers.contains(value)) {
                 wrappers.add(value);
             }
             stringAbstractNodeIOWrapperHashMap.put(key, value);
@@ -65,7 +65,7 @@ public class AbstractNodeIOWWrapperRingSearchablePool implements Snapshot {
     }
 
     public Optional<AbstractNodeIOWrapper> find(String id) {
-        synchronized (this){
+        synchronized (this) {
             return Optional.ofNullable(stringAbstractNodeIOWrapperHashMap.get(id));
         }
     }

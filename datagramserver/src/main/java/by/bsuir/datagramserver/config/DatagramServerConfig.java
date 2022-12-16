@@ -23,7 +23,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.net.*;
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.List;
 
 @Configuration
@@ -38,7 +39,7 @@ public class DatagramServerConfig {
     private int runnerTimeout;
 
     @Bean
-    public StateHolder stateHolder(){
+    public StateHolder stateHolder() {
         return new StateHolder().setRunning(true);
     }
 

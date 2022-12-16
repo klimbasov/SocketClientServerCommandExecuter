@@ -6,15 +6,15 @@ import by.bsuir.instrumental.command.impl.CopyFileCommand;
 import by.bsuir.instrumental.command.ui.InputQueuePool;
 import by.bsuir.instrumental.command.ui.RawInputStructuredCommandAdapter;
 import by.bsuir.instrumental.command.ui.SystemInputProducer;
+import by.bsuir.instrumental.ftp.slftp.SlftpController;
+import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
+import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.node.SocketIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
-import by.bsuir.instrumental.ftp.slftp.SlftpController;
-import by.bsuir.instrumental.ftp.slftp.pool.FileProcessUriQueuePool;
-import by.bsuir.instrumental.ftp.slftp.pool.InputFileRecordUriQueuePool;
 import by.bsuir.instrumental.state.application.StateHolder;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
@@ -37,9 +37,10 @@ public class ClientConfig {
     private int runnerTimeout;
 
     @Bean
-    public StateHolder stateHolder(){
+    public StateHolder stateHolder() {
         return new StateHolder().setRunning(true);
     }
+
     @Bean
     public SlftpController controller(IdentificationHolder holder) {
         return new SlftpController(holder, new FileProcessUriQueuePool(), new InputFileRecordUriQueuePool());
@@ -97,17 +98,17 @@ public class ClientConfig {
     }
 
     @Bean
-    public InputQueuePool inputQueuePool(){
+    public InputQueuePool inputQueuePool() {
         return new InputQueuePool();
     }
 
     @Bean
-    public RawInputStructuredCommandAdapter rawInputStructuredCommandAdapter(){
+    public RawInputStructuredCommandAdapter rawInputStructuredCommandAdapter() {
         return new RawInputStructuredCommandAdapter();
     }
 
     @Bean
-    public SystemInputProducer systemInputProducer(StateHolder holder, InputQueuePool pool){
+    public SystemInputProducer systemInputProducer(StateHolder holder, InputQueuePool pool) {
         return new SystemInputProducer(holder, pool);
     }
 }

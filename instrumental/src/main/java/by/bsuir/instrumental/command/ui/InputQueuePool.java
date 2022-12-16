@@ -1,7 +1,6 @@
 package by.bsuir.instrumental.command.ui;
 
 import by.bsuir.instrumental.pool.QueuePool;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ public class InputQueuePool implements QueuePool<String> {
         return inputQueue.isEmpty();
     }
 
-    public List<String> pollAll(){
+    public List<String> pollAll() {
         List<String> strings = new ArrayList<>(inputQueue);
         inputQueue.clear();
         return strings;

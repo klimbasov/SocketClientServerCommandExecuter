@@ -1,4 +1,3 @@
-
 package by.bsuir.instrumental.ftp.tftp.pool;
 
 import by.bsuir.instrumental.ftp.tftp.file.input.FileInputStructure;

@@ -18,8 +18,8 @@ public class FileInputStructure implements Closeable {
     private final String id;
     private final FileMetaData metadata;
     private final String path;
-    private long blockNum;
     private final long blockAmount;
+    private long blockNum;
     private List<Portion> block;
     private BufferedInputStream bis;
 
@@ -28,7 +28,7 @@ public class FileInputStructure implements Closeable {
     private long acksReceived = 0;
     private long portionsSent = 0;
 
-    public FileInputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount){
+    public FileInputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount) {
         this.id = id;
         this.path = path;
         this.blockAmount = blockAmount;
@@ -38,36 +38,36 @@ public class FileInputStructure implements Closeable {
     }
 
 
-    public FileInputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount, BlockTable blockTable){
+    public FileInputStructure(String id, FileMetaData fileMetaData, String path, long blockAmount, BlockTable blockTable) {
         this(id, fileMetaData, path, blockAmount);
         loadForBlockTable(blockTable);
     }
 
-    private void loadForBlockTable(BlockTable blockTable){
+    private void loadForBlockTable(BlockTable blockTable) {
         blockNum = blockTable.getBlockId();
         block = FileBlockIOUtil.readBlock(this);
     }
 
-    public void nextBlock(){
-        if(blockNum < blockAmount){
+    public void nextBlock() {
+        if (blockNum < blockAmount) {
             ++blockNum;
             block = FileBlockIOUtil.readBlock(this);
         }
     }
 
-    public boolean isComplete(){
+    public boolean isComplete() {
         return blockNum >= blockAmount - 1;
     }
 
-    public void incNack(){
+    public void incNack() {
         ++nacksReceived;
     }
 
-    public void incAck(){
+    public void incAck() {
         ++acksReceived;
     }
 
-    public void incPortionsSent(){
+    public void incPortionsSent() {
         ++portionsSent;
     }
 

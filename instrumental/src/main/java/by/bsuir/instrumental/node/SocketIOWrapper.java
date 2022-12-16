@@ -1,6 +1,5 @@
 package by.bsuir.instrumental.node;
 
-import by.bsuir.instrumental.ftp.slftp.dto.Portion;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.packet.Packet;
 import lombok.Getter;
@@ -11,7 +10,10 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Slf4j
 public class SocketIOWrapper extends AbstractNodeIOWrapper implements DisposableBean {
@@ -145,7 +147,7 @@ public class SocketIOWrapper extends AbstractNodeIOWrapper implements Disposable
         packets.forEach(this::packetSendHandler);
     }
 
-    private void packetSendHandler(Packet packet){
+    private void packetSendHandler(Packet packet) {
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
             objectOutputStream.writeObject(packet);

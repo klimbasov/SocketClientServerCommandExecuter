@@ -7,21 +7,23 @@ import by.bsuir.instrumental.pool.UuidAddressTable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.*;
-import java.net.*;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.SocketAddress;
+import java.net.SocketTimeoutException;
 import java.util.*;
 
 import static java.util.Objects.nonNull;
 
 @Slf4j
-public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
+public class UdpSocketIOWrapper extends AbstractNodeIOWrapper {
     private static final Packet FAULT_ADDRESS_NOT_FOUND_PACKET = new Packet("no root found for request".getBytes(), "".getBytes(),
             "".getBytes(), PacketType.INFORM_PACKAGE.typeId, PacketFlags.ACK.flagValue);
     private static final int DATAGRAM_PACKET_SIZE = 1024 << 2;
-    private DatagramSocket socket;
     private final Queue<Packet> callbackQueue;
     private final Queue<Packet> packetQueue;
     private final UuidAddressTable addressTable;
-
+    private DatagramSocket socket;
     private boolean isClosed;
 
     public UdpSocketIOWrapper(UuidAddressTable addressTable) {
@@ -35,11 +37,11 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
     @Override
     public List<Packet> receive() {
         List<Packet> packets;
-        if(callbackQueue.isEmpty()){
+        if (callbackQueue.isEmpty()) {
             receiveFromSocket();
             packets = new ArrayList<>(packetQueue);
             packetQueue.clear();
-        }else {
+        } else {
             packets = new ArrayList<>(callbackQueue);
             callbackQueue.clear();
         }
@@ -51,12 +53,12 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
         packets.forEach(this::sendPacketHandler);
     }
 
-    private void sendPacketHandler(Packet packet){
+    private void sendPacketHandler(Packet packet) {
         String uuid = new String(packet.getTargetId());
         SocketAddress address = addressTable.get(uuid);
-        if(nonNull(address)){
+        if (nonNull(address)) {
             sendToSocket(packet, address);
-        }else {
+        } else {
             callbackQueue.add(FAULT_ADDRESS_NOT_FOUND_PACKET);
         }
     }
@@ -64,8 +66,8 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
     private void sendToSocket(Packet response, SocketAddress address) {
         DatagramPacket packet;
         byte[] data;
-        try(ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)){
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
             objectOutputStream.writeObject(response);
             data = Arrays.copyOf(byteArrayOutputStream.toByteArray(), DATAGRAM_PACKET_SIZE);
             packet = new DatagramPacket(data, DATAGRAM_PACKET_SIZE);
@@ -80,23 +82,23 @@ public class UdpSocketIOWrapper extends AbstractNodeIOWrapper{
         byte[] data = new byte[DATAGRAM_PACKET_SIZE];
         DatagramPacket datagramPacket = new DatagramPacket(data, DATAGRAM_PACKET_SIZE);
         try {
-            while (true){
+            while (true) {
                 socket.receive(datagramPacket);
-                try(ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
-                    ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)){
+                try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(datagramPacket.getData());
+                     ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
                     Packet packet = (Packet) objectInputStream.readObject();
                     packetQueue.offer(packet);
                     String source = new String(packet.getSourceId());
                     SocketAddress address = datagramPacket.getSocketAddress();
-                    if(!address.equals(addressTable.get(source))){
+                    if (!address.equals(addressTable.get(source))) {
                         addressTable.put(source, address);
                     }
                 } catch (ClassNotFoundException e) {
                     log.warn("received packet was corrupted");
                 }
             }
-        }catch (SocketTimeoutException ignored){}
-        catch (IOException e) {
+        } catch (SocketTimeoutException ignored) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

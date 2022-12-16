@@ -21,10 +21,9 @@ public class CopyFileCommand extends AbstractCommand {
     );
     private static final Map<String, Class<?>> SHORTEN_OPTIONS = new HashMap<>();
     private static final Class<?>[] ARGUMENTS = new Class[]{String.class, String.class};
+    private static final String CAN_NOT_PROCESS_MSG = "request can not be processed. Invalid addresses were set";
     private final FtpController controller;
     private final IdentificationHolder holder;
-
-    private static final String CAN_NOT_PROCESS_MSG = "request can not be processed. Invalid addresses were set";
 
 
     public CopyFileCommand(FtpController controller, IdentificationHolder holder) {
@@ -41,14 +40,14 @@ public class CopyFileCommand extends AbstractCommand {
             String source = parseStringArg(command, 1);
             String destination = parseStringArg(command, 2);
             Path path = Path.of(url);
-            if(source.equals(holder.getIdentifier())){
+            if (source.equals(holder.getIdentifier())) {
                 if (Files.exists(path)) {
                     result = "file " + url + " exists, starting transferring";
                     controller.upload(url, destination);
-                }else {
+                } else {
                     result = "there is no such file";
                 }
-            }else if(destination.equals(holder.getIdentifier())){
+            } else if (destination.equals(holder.getIdentifier())) {
                 controller.download(url, source);
             } else {
                 result = CAN_NOT_PROCESS_MSG;

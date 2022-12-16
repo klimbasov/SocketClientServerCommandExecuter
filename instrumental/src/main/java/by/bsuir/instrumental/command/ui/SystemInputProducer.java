@@ -10,19 +10,18 @@ import java.util.Scanner;
 @RequiredArgsConstructor
 @Slf4j
 public class SystemInputProducer implements Runnable, DisposableBean {
+    private static final String STOP_WORD = "quit";
     private final StateHolder stateHolder;
     private final InputQueuePool inputPool;
     private final Scanner scanner = new Scanner(System.in);
-
-    private static final String STOP_WORD = "quit";
 
     @Override
     public void run() {
         while (stateHolder.isRunning()) {
             String input = scanner.nextLine();
-            if(input.contains(STOP_WORD)){
+            if (input.contains(STOP_WORD)) {
                 stateHolder.setRunning(false);
-            }else {
+            } else {
                 inputPool.offer(input);
             }
         }
