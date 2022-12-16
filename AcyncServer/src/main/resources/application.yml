@@ -3,9 +3,9 @@ custom:
     connectivity:
       port: 8081
       so_timeout: 15
-      id: server
+      id: 0.0.0.0
     timing:
       loopWaiting: 10
       sendIterationsPerTaskExecution: 3
-      receiveIterationsPerTaskExecution: 3
-      socketAcceptIterationsPerTaskExecution: 1
+    scale:
+      pool-max-size: 2

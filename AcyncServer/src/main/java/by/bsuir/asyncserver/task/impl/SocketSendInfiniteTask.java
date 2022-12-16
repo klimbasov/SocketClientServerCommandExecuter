@@ -15,11 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.config.ScheduledTaskHolder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,10 +25,10 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 public class SocketSendInfiniteTask implements InfiniteTask {
-    private boolean isRunning = true;
     private final PacketQueuePoolImpl packetQueuePool;
     private final AbstractNodeIOWWrapperRingSearchablePool wrappers;
     private final StateHolder stateHolder;
+    private boolean isRunning = true;
     @Setter
     @Getter
     @Value("${custom.server.timing.sendIterationsPerTaskExecution}")
@@ -38,7 +36,7 @@ public class SocketSendInfiniteTask implements InfiniteTask {
 
     @Override
     public void run() {
-        while (isRunning && stateHolder.isRunning()){
+        while (isRunning && stateHolder.isRunning()) {
             try {
                 MultiValueMap<AbstractNodeIOWrapper, Packet> abstractNodeIOWrapperPacketMultiValueMap = new LinkedMultiValueMap<>();
                 packetQueuePool.pollAll().forEach(packet -> {
@@ -51,13 +49,9 @@ public class SocketSendInfiniteTask implements InfiniteTask {
                     }
                 });
                 for (Map.Entry<AbstractNodeIOWrapper, List<Packet>> entry : abstractNodeIOWrapperPacketMultiValueMap.entrySet()) {
-                    try {
-                        entry.getKey().send(entry.getValue());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+                    entry.getKey().send(entry.getValue());
                 }
-            }catch (RuntimeException e){
+            } catch (RuntimeException e) {
                 log.error(e.getMessage());
             }
         }
@@ -92,6 +86,7 @@ public class SocketSendInfiniteTask implements InfiniteTask {
                 PacketType.FTP_PACKAGE.typeId,
                 SlftpPacketType.NOT_PASSED.typeId);
     }
+
     @Override
     public void stop() {
         isRunning = false;

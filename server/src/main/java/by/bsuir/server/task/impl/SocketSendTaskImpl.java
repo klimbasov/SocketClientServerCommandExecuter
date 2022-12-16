@@ -1,10 +1,10 @@
 package by.bsuir.server.task.impl;
 
+import by.bsuir.instrumental.ftp.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.node.AbstractNodeIOWrapper;
 import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
-import by.bsuir.instrumental.ftp.slftp.packet.type.SlftpPacketType;
 import by.bsuir.instrumental.pool.impl.AbstractNodeIOWWrapperRingSearchablePool;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.task.Task;
@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,12 +46,8 @@ public class SocketSendTaskImpl implements Task {
                     handleNotFoundResponse(packet);
                 }
             });
-            for(Map.Entry<AbstractNodeIOWrapper, List<Packet>> entry : abstractNodeIOWrapperPacketMultiValueMap.entrySet()){
-                try {
-                    entry.getKey().send(entry.getValue());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            for (Map.Entry<AbstractNodeIOWrapper, List<Packet>> entry : abstractNodeIOWrapperPacketMultiValueMap.entrySet()) {
+                entry.getKey().send(entry.getValue());
             }
         }
     }

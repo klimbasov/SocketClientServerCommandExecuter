@@ -9,19 +9,18 @@ import by.bsuir.instrumental.packet.Packet;
 import by.bsuir.instrumental.packet.PacketFlags;
 import by.bsuir.instrumental.packet.type.PacketType;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 @Slf4j
 public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
-
     private final FtpController controller;
     private final StructuredCommandPacketMapper processor;
     private final CommandFactory commandFactory;
     private final Queue<Packet> packetQueue = new LinkedList<>();
-    private static final int MAX_IDEL = 900;
-    private int idel = 0;
 
     public EndNodeIOWrapper(IdentificationHolder holder, StructuredCommandPacketMapper processor, CommandFactory commandFactory, FtpController controller) {
         super(holder);
@@ -32,17 +31,9 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     @Override
     public List<Packet> receive() {
-//        ++idel;
-//        if(idel >= MAX_IDEL){
-//            log.warn("Node spend too much time in idel state. Take attention.");
-//            idel = 0;
-//        }
         if (packetQueue.isEmpty()) {
             packetQueue.addAll(controller.receive());
         }
-//        if(!packetQueue.isEmpty()){
-//            idel = 0;
-//        }
         List<Packet> packets = new ArrayList<>(packetQueue);
         packetQueue.clear();
         return packets;
@@ -50,11 +41,10 @@ public class EndNodeIOWrapper extends AbstractNodeIOWrapper {
 
     @Override
     public void send(List<Packet> packets) {
-        idel = 0;
         packets.forEach(this::packetHandler);
     }
 
-    private void packetHandler(Packet packet){
+    private void packetHandler(Packet packet) {
         PacketType type = PacketType.getInstance(packet.getType());
         switch (type) {
             case COMMAND_PACKAGE -> commandPacketHandler(packet);

@@ -1,8 +1,8 @@
 package by.bsuir.asyncserver.config;
 
+import by.bsuir.asyncserver.pool.MultithreadingSocketHandlerTaskPool;
+import by.bsuir.asyncserver.task.impl.MultithreadingSocketHandlerTask;
 import by.bsuir.asyncserver.task.impl.ServerSocketAcceptTask;
-import by.bsuir.asyncserver.task.impl.SocketReciveInfiniteTask;
-import by.bsuir.asyncserver.task.impl.SocketSendInfiniteTask;
 import by.bsuir.instrumental.command.factory.CommandFactory;
 import by.bsuir.instrumental.command.factory.impl.CommandFactoryImpl;
 import by.bsuir.instrumental.command.impl.CopyFileCommand;
@@ -13,16 +13,12 @@ import by.bsuir.instrumental.input.StructuredCommandPacketMapper;
 import by.bsuir.instrumental.node.EndNodeIOWrapper;
 import by.bsuir.instrumental.node.identification.IdentificationHolder;
 import by.bsuir.instrumental.node.identification.impl.IdentificationHolderImpl;
-import by.bsuir.instrumental.packet.Packet;
-import by.bsuir.instrumental.pool.QueuePool;
 import by.bsuir.instrumental.pool.impl.AbstractNodeIOWWrapperRingSearchablePool;
 import by.bsuir.instrumental.pool.impl.PacketQueuePoolImpl;
 import by.bsuir.instrumental.state.application.StateHolder;
-import by.bsuir.instrumental.task.InfiniteTask;
 import by.bsuir.instrumental.task.Task;
 import by.bsuir.instrumental.task.runner.TaskRunner;
 import by.bsuir.instrumental.task.runner.impl.AsyncOptimizdTaskRunner;
-import by.bsuir.instrumental.task.runner.impl.MultithreadingTaskRunner;
 import by.bsuir.instrumental.util.NodeIdBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,10 +39,17 @@ public class ServerConfig {
     @Value("${custom.server.timing.loopWaiting}")
     private int runnerTimeout;
 
+    @Value("${custom.server.scale.pool-max-size}")
+    private int threadPoolMaxSize;
+
+    @Value("${custom.server.connectivity.id}")
+    private String hostname;
+
     @Bean
-    public StateHolder stateHolder(){
+    public StateHolder stateHolder() {
         return new StateHolder().setRunning(true);
     }
+
     @Bean
     public ServerSocket serverSocket() {
         ServerSocket serverSocket;
@@ -100,29 +103,33 @@ public class ServerConfig {
     public AbstractNodeIOWWrapperRingSearchablePool nodeIOWrapperPool(EndNodeIOWrapper wrapper, CommandFactoryImpl factory) {
         AbstractNodeIOWWrapperRingSearchablePool wrapperPool = new AbstractNodeIOWWrapperRingSearchablePool();
         wrapperPool.offerUnnamed(wrapper);
-        wrapperPool.setName("0.0.0.0", wrapper);
+        wrapperPool.setName(hostname, wrapper);
         factory.setWrapperPool(wrapperPool);
         return wrapperPool;
     }
 
+    @Bean
+    public MultithreadingSocketHandlerTaskPool multithreadingSocketHandlerTaskPool(StateHolder stateHolder, EndNodeIOWrapper endNodeIOWrapper, PacketQueuePoolImpl queuePool) {
+        MultithreadingSocketHandlerTaskPool pool = new MultithreadingSocketHandlerTaskPool(stateHolder, threadPoolMaxSize);
+        MultithreadingSocketHandlerTask endNodeTask = new MultithreadingSocketHandlerTask(endNodeIOWrapper, stateHolder, queuePool);
+        endNodeTask.setUuid(hostname);
+        if (!pool.offer(endNodeTask)) {
+            throw new RuntimeException("Could not add end node element inf task to poll");
+        }
+        return pool;
+    }
+
     @Bean(name = "tasks")
-    public List<Task> tasks(ServerSocket socket, AbstractNodeIOWWrapperRingSearchablePool pool){
-        Task serverSocketAccept = new ServerSocketAcceptTask(socket, pool);
+    public List<Task> tasks(ServerSocket socket, MultithreadingSocketHandlerTaskPool multithreadingSocketHandlerTaskPool,
+                            PacketQueuePoolImpl packetQueuePool,
+                            StateHolder stateHolder) {
+        Task serverSocketAccept = new ServerSocketAcceptTask(socket, multithreadingSocketHandlerTaskPool, packetQueuePool, stateHolder);
         return List.of(serverSocketAccept);
     }
 
-    @Bean(name = "infiniteTasks")
-    public List<InfiniteTask> infiniteTasks(PacketQueuePoolImpl queuePool,
-                                            AbstractNodeIOWWrapperRingSearchablePool abstractNodeIOWWrapperRingSearchablePool,
-                                            StateHolder stateHolder){
-        InfiniteTask receive = new SocketReciveInfiniteTask(queuePool, abstractNodeIOWWrapperRingSearchablePool, stateHolder);
-        InfiniteTask send = new SocketSendInfiniteTask(queuePool, abstractNodeIOWWrapperRingSearchablePool, stateHolder);
-        return List.of(receive, send);
-    }
-
     @Bean(destroyMethod = "destroy")
-    public TaskRunner taskRunner(@Qualifier("tasks") List<Task> tasks, @Qualifier("infiniteTasks") List<InfiniteTask> infiniteTasks, StateHolder stateHolder) {
-        MultithreadingTaskRunner runner = new MultithreadingTaskRunner(infiniteTasks.toArray(new InfiniteTask[0]), tasks.toArray(new Task[0]), stateHolder);
+    public TaskRunner taskRunner(@Qualifier("tasks") List<Task> tasks, StateHolder stateHolder) {
+        AsyncOptimizdTaskRunner runner = new AsyncOptimizdTaskRunner(tasks.toArray(new Task[0]), stateHolder);
         runner.setSleepTime(runnerTimeout);
         return runner;
     }

@@ -15,29 +15,37 @@ public class PacketQueuePoolImpl implements QueuePool<Packet> {
 
     @Override
     public void offer(Packet packet) {
-        synchronized (this){
+        synchronized (this) {
             packetQueue.offer(packet);
         }
     }
 
     @Override
     public Optional<Packet> poll() {
-        synchronized (this){
+        synchronized (this) {
             return Optional.ofNullable(packetQueue.poll());
         }
     }
 
     @Override
     public boolean isEmpty() {
-        synchronized (this){
+        synchronized (this) {
             return packetQueue.isEmpty();
         }
     }
 
-    public List<Packet> pollAll(){
-        synchronized (this){
+    public List<Packet> pollAll() {
+        synchronized (this) {
             List<Packet> packets = new LinkedList<>(packetQueue);
             packetQueue.clear();
+            return packets;
+        }
+    }
+
+    public List<Packet> pollAllOfUuid(String uuid) {
+        synchronized (this) {
+            List<Packet> packets = new LinkedList<>(packetQueue.stream().filter(packet -> uuid.equals(new String(packet.getTargetId()))).toList());
+            packetQueue.removeAll(packets);
             return packets;
         }
     }

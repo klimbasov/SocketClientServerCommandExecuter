@@ -5,9 +5,7 @@ import by.bsuir.instrumental.packet.Packet;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIOWrapper>, AutoCloseable {
@@ -16,7 +14,7 @@ public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIO
 
     public abstract List<Packet> receive();
 
-    public abstract void send(List<Packet> response) throws IOException;
+    public abstract void send(List<Packet> response);
 
     public abstract boolean isAvailable();
 
@@ -28,7 +26,7 @@ public abstract class AbstractNodeIOWrapper implements Comparable<AbstractNodeIO
         return this.holder.compareTo(o.getHolder());
     }
 
-    public String getId(){
+    public String getId() {
         return holder.getIdentifier();
     }
 }
